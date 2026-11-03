@@ -6,6 +6,8 @@ const ROOM_PREFIX = 'safezone-sala-';
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 32 símbolos: 8 letras = 40 bits
 const CODE_LEN = 8;
 const MAX_MEMBERS = 12;
+const TEXT_CHANNELS = new Set(['geral', 'filmes']);
+const VOICE_CHANNEL = 'voz-geral';
 const QUALITIES = {
   '720': { width: 1280, height: 720, bitrate: 5_000_000 },
   '1080': { width: 1920, height: 1080, bitrate: 10_000_000 },
@@ -29,10 +31,12 @@ const $ = (id) => document.getElementById(id);
 const ui = Object.fromEntries(['home', 'room', 'nameInput', 'codeInput', 'createBtn', 'joinBtn', 'homeError', 'roomCode', 'peopleCount',
   'shareBtn', 'shareStatus', 'shareIdle', 'leaveBtn', 'memberList', 'memberCountBadge', 'watchTitle', 'stats', 'stage', 'video', 'stageMsg', 'stageEmpty', 'controls',
   'muteBtn', 'volume', 'fullBtn', 'shareModal', 'sourceGrid', 'appSelect', 'qualitySelect', 'cancelShare', 'confirmShare', 'toast',
-  'tabs', 'waylandNote', 'audioLabel', 'audioHint'].map((id) => [id, $(id)]));
+  'tabs', 'waylandNote', 'audioLabel', 'audioHint', 'myNickname', 'chatPanel', 'chatMessages', 'chatForm', 'chatInput',
+  'voiceChannelBtn', 'voiceChannelCount', 'voicePanel', 'voicePanelHint', 'voiceRoster', 'voiceToggleBtn', 'micBtn'].map((id) => [id, $(id)]));
 
 const isId = (s) => typeof s === 'string' && /^[\w-]{1,64}$/.test(s);
 const cleanName = (s) => String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 24) || 'Alguém';
+const safeTime = (value) => { const n = Number(value); return Number.isFinite(n) && Math.abs(n) <= 8.64e15 ? n : Date.now(); };
 const isMsg = (m) => m && typeof m === 'object' && typeof m.t === 'string';
 // No máximo 40 mensagens por segundo por conexão; passou disso, a conexão é derrubada.
 function rateGuard() {
@@ -44,6 +48,9 @@ let peer = null, myId = null, myName = '', roomCode = '', isOwner = false, owner
 let lastOwnerMsg = 0, heartbeat = null, connectTimer = null, wayland = false, isWindows = false;
 const members = new Map(); // só o dono: id -> { conn, name, streaming, lastSeen }
 let memberList = [];       // todos: [{ id, name, streaming, owner }]
+let activeChannel = 'watch', voiceRoster = [], voiceStream = null, voiceChannel = null, micMuted = false;
+const chatHistory = new Map([...TEXT_CHANNELS].map((channel) => [channel, []]));
+const voiceCalls = new Map(), voiceAudio = new Map();
 let localStream = null, audioPipe = null;
 const outgoing = new Map();
 let watching = null, watchAskedAt = 0, incoming = null, statsTimer = null;
@@ -70,7 +77,7 @@ try { if (QUALITIES[localStorage.getItem('safezone-quality')]) ui.qualitySelect.
 
 function readName() {
   const name = ui.nameInput.value.trim();
-  if (!name) { showHomeError('Coloca seu nome primeiro.'); ui.nameInput.focus(); return null; }
+  if (!name) { showHomeError('Escolha um apelido antes de entrar.'); ui.nameInput.focus(); return null; }
   try { localStorage.setItem('safezone-name', name); } catch {}
   return name;
 }
@@ -90,7 +97,7 @@ ui.joinBtn.onclick = () => {
   myName = name; showHomeError(''); setHomeBusy(true); joinRoom(code);
 };
 ui.codeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') ui.joinBtn.click(); });
-ui.nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') ui.createBtn.click(); });
+ui.nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (ui.codeInput.value.trim()) ui.joinBtn.click(); else ui.codeInput.focus(); } });
 
 function randomCode() {
   const bytes = crypto.getRandomValues(new Uint8Array(CODE_LEN)); // 256 é múltiplo de 32: sem viés
@@ -106,7 +113,7 @@ async function createRoom() {
   peer = new Peer(ROOM_PREFIX + code, options);
   peer.on('open', (id) => {
     myId = id; isOwner = true; roomCode = code;
-    members.set(myId, { conn: null, name: myName, streaming: false, lastSeen: Date.now() });
+    members.set(myId, { conn: null, name: myName, streaming: false, voiceChannel: null, lastSeen: Date.now() });
     enterRoom();
     broadcastMembers();
   });
@@ -168,7 +175,9 @@ function enterRoom() {
   setHomeBusy(false);
   ui.home.hidden = true;
   ui.room.hidden = false;
+  ui.myNickname.textContent = myName;
   ui.roomCode.textContent = roomCode;
+  selectChannel('watch');
   renderMembers();
   showStage();
   clearInterval(heartbeat);
@@ -178,9 +187,15 @@ function enterRoom() {
 function tick() {
   if (isOwner) {
     const now = Date.now();
+    let voiceChanged = false;
     for (const [id, m] of members) {
-      if (id !== myId && now - m.lastSeen > STALE_MS) { try { m.conn.close(); } catch {} members.delete(id); }
+      if (id !== myId && now - m.lastSeen > STALE_MS) {
+        if (m.voiceChannel === VOICE_CHANNEL) voiceChanged = true;
+        try { m.conn.close(); } catch {}
+        members.delete(id);
+      }
     }
+    if (voiceChanged) updateVoiceRoster();
     broadcastMembers();
   } else if (ownerConn) {
     try { ownerConn.send({ t: 'ping' }); } catch {}
@@ -199,6 +214,7 @@ function leaveRoom() {
 function roomClosed(text) { if (!inRoom) return; toast(text); resetAll(); }
 
 function resetAll() {
+  leaveVoice();
   inRoom = false;
   clearInterval(heartbeat);
   stopShare(true);
@@ -207,6 +223,7 @@ function resetAll() {
   if (peer) { peer.destroy(); peer = null; }
   ui.room.hidden = true;
   ui.home.hidden = false;
+  selectChannel('watch');
   setHomeBusy(false);
 }
 
@@ -234,11 +251,35 @@ function ownerHandle(from, msg, conn) {
     case 'hello':
       if (m || !conn) return;
       if (members.size >= MAX_MEMBERS) { try { conn.send({ t: 'full' }); } catch {} setTimeout(() => conn.close(), 300); return; }
-      members.set(from, { conn, name: cleanName(msg.name), streaming: false, lastSeen: Date.now() });
+      members.set(from, { conn, name: cleanName(msg.name), streaming: false, voiceChannel: null, lastSeen: Date.now() });
       broadcastMembers();
+      deliver(from, { t: 'chat-history', channels: Object.fromEntries(chatHistory) });
       break;
     case 'streaming':
       if (m) { m.streaming = msg.on === true; broadcastMembers(); }
+      break;
+    case 'chat-send': {
+      if (!m || !TEXT_CHANNELS.has(msg.channel) || typeof msg.text !== 'string') return;
+      const text = msg.text.replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 500);
+      if (!text) return;
+      const item = { name: m.name, text, at: Date.now() };
+      const history = chatHistory.get(msg.channel);
+      history.push(item);
+      if (history.length > 100) history.shift();
+      for (const id of members.keys()) deliver(id, { t: 'chat-message', channel: msg.channel, message: item });
+      break;
+    }
+    case 'voice-join':
+      if (!m || msg.channel !== VOICE_CHANNEL) return;
+      m.voiceChannel = VOICE_CHANNEL;
+      updateVoiceRoster();
+      broadcastMembers();
+      break;
+    case 'voice-leave':
+      if (!m || m.voiceChannel !== VOICE_CHANNEL) return;
+      m.voiceChannel = null;
+      updateVoiceRoster();
+      broadcastMembers();
       break;
     case 'watch':
     case 'unwatch': {
@@ -254,13 +295,20 @@ function ownerHandle(from, msg, conn) {
 function removeMember(id, conn) {
   const m = members.get(id);
   if (!m || (conn && m.conn !== conn)) return;
+  const wasInVoice = m.voiceChannel === VOICE_CHANNEL;
   members.delete(id);
+  if (wasInVoice) updateVoiceRoster();
   broadcastMembers();
 }
 
 function broadcastMembers() {
-  const list = [...members].map(([id, m]) => ({ id, name: m.name, streaming: m.streaming, owner: id === myId }));
+  const list = [...members].map(([id, m]) => ({ id, name: m.name, streaming: m.streaming, voiceChannel: m.voiceChannel, owner: id === myId }));
   for (const id of members.keys()) deliver(id, { t: 'members', list });
+}
+
+function updateVoiceRoster() {
+  const users = [...members].filter(([, m]) => m.voiceChannel === VOICE_CHANNEL).map(([id, m]) => ({ id, name: m.name }));
+  for (const [id, m] of members) if (m.voiceChannel === VOICE_CHANNEL) deliver(id, { t: 'voice-roster', channel: VOICE_CHANNEL, users });
 }
 
 // Só o dono manda mensagens para os outros (a conexão é a dele).
@@ -270,7 +318,7 @@ function memberHandle(msg) {
     case 'members':
       memberList = (Array.isArray(msg.list) ? msg.list : []).slice(0, MAX_MEMBERS)
         .filter((m) => m && isId(m.id))
-        .map((m) => ({ id: m.id, name: cleanName(m.name), streaming: m.streaming === true, owner: m.owner === true }));
+        .map((m) => ({ id: m.id, name: cleanName(m.name), streaming: m.streaming === true, voiceChannel: m.voiceChannel === VOICE_CHANNEL ? VOICE_CHANNEL : null, owner: m.owner === true }));
       for (const id of outgoing.keys()) if (!memberList.some((m) => m.id === id)) closeOutgoing(id);
       if (watching) {
         const target = memberList.find((m) => m.id === watching);
@@ -278,7 +326,30 @@ function memberHandle(msg) {
         else if (!target.streaming && incoming) closeIncoming();
       }
       renderMembers();
+      renderVoiceChannel();
       showStage();
+      break;
+    case 'chat-history':
+      for (const channel of TEXT_CHANNELS) {
+        const list = msg.channels && Array.isArray(msg.channels[channel]) ? msg.channels[channel].slice(-100) : [];
+        chatHistory.set(channel, list.filter((item) => item && typeof item.name === 'string' && typeof item.text === 'string').map((item) => ({ name: cleanName(item.name), text: item.text.slice(0, 500), at: safeTime(item.at) })));
+      }
+      renderChat();
+      break;
+    case 'chat-message':
+      if (!TEXT_CHANNELS.has(msg.channel) || !msg.message || typeof msg.message.text !== 'string' || typeof msg.message.name !== 'string') return;
+      {
+        const list = chatHistory.get(msg.channel);
+        list.push({ name: cleanName(msg.message.name), text: msg.message.text.slice(0, 500), at: safeTime(msg.message.at) });
+        if (list.length > 100) list.shift();
+        if (activeChannel === msg.channel) renderChat();
+      }
+      break;
+    case 'voice-roster':
+      if (msg.channel !== VOICE_CHANNEL || !Array.isArray(msg.users)) return;
+      voiceRoster = msg.users.slice(0, MAX_MEMBERS).filter((u) => u && isId(u.id)).map((u) => ({ id: u.id, name: cleanName(u.name) }));
+      syncVoiceCalls();
+      renderVoiceChannel();
       break;
     case 'watch-req':
       if (localStream && isId(msg.from) && memberList.some((m) => m.id === msg.from)) callViewer(msg.from);
@@ -309,13 +380,151 @@ function renderMembers() {
     if (m.id === myId) top.append(badge('VOCÊ'));
     const state = document.createElement('div');
     state.className = 'member-state';
-    state.textContent = m.streaming ? '● Transmitindo' : 'Na sala';
+    state.textContent = m.streaming ? '● Transmitindo' : m.voiceChannel ? '● No canal de voz' : 'Na sala';
     li.append(top, state);
     if (m.streaming) li.onclick = () => selectMember(m.id);
     return li;
   }));
 }
 function badge(text) { const b = document.createElement('span'); b.className = 'badge'; b.textContent = text; return b; }
+
+function selectChannel(channel) {
+  activeChannel = channel;
+  document.querySelectorAll('.channel-select').forEach((button) => button.classList.toggle('active', button.dataset.channel === channel));
+  ui.voiceChannelBtn.classList.toggle('active', channel === VOICE_CHANNEL);
+  const heading = document.querySelector('.room-heading strong');
+  if (channel === 'watch') {
+    heading.textContent = 'sala';
+    ui.video.closest('.viewer').hidden = false;
+    ui.chatPanel.hidden = true;
+    ui.voicePanel.hidden = true;
+  } else if (TEXT_CHANNELS.has(channel)) {
+    heading.textContent = channel;
+    ui.video.closest('.viewer').hidden = true;
+    ui.chatPanel.hidden = false;
+    ui.voicePanel.hidden = true;
+    ui.chatInput.placeholder = 'Mensagem em #' + channel;
+    renderChat();
+  } else {
+    heading.textContent = VOICE_CHANNEL;
+    ui.video.closest('.viewer').hidden = true;
+    ui.chatPanel.hidden = true;
+    ui.voicePanel.hidden = false;
+    renderVoiceChannel();
+  }
+}
+
+function renderChat() {
+  if (!ui.chatMessages) return;
+  const list = chatHistory.get(activeChannel) || [];
+  ui.chatMessages.replaceChildren(...list.map((item) => {
+    const row = document.createElement('article'); row.className = 'chat-message';
+    const avatar = document.createElement('span'); avatar.className = 'chat-avatar'; avatar.textContent = item.name.slice(0, 1).toUpperCase();
+    const body = document.createElement('div');
+    const head = document.createElement('div'); head.className = 'chat-message-head';
+    const name = document.createElement('strong'); name.textContent = item.name;
+    const date = new Date(item.at);
+    const time = document.createElement('time'); time.dateTime = date.toISOString(); time.textContent = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const text = document.createElement('p'); text.className = 'chat-message-text'; text.textContent = item.text;
+    head.append(name, time); body.append(head, text); row.append(avatar, body); return row;
+  }));
+  ui.chatMessages.scrollTop = ui.chatMessages.scrollHeight;
+}
+
+function renderVoiceChannel() {
+  if (!ui.voiceRoster) return;
+  const users = memberList.filter((m) => m.voiceChannel === VOICE_CHANNEL);
+  ui.voiceChannelCount.textContent = String(users.length);
+  ui.voiceRoster.replaceChildren(...users.map((m) => {
+    const item = document.createElement('li'); item.textContent = m.name + (m.id === myId ? ' (você)' : '');
+    if (m.id === myId) item.classList.add('self');
+    return item;
+  }));
+  const joined = voiceChannel === VOICE_CHANNEL;
+  ui.voiceToggleBtn.textContent = joined ? 'Sair do canal de voz' : 'Entrar no canal de voz';
+  ui.voiceToggleBtn.classList.toggle('danger', joined);
+  ui.voicePanelHint.textContent = joined ? (micMuted ? 'Você está conectado com o microfone desligado.' : 'Seu microfone está conectado ao canal.') : 'Entre no canal para conversar com quem está na sala.';
+  ui.micBtn.hidden = !joined;
+  ui.micBtn.textContent = micMuted ? '🔇' : '🎙';
+  ui.micBtn.title = micMuted ? 'Ativar microfone' : 'Silenciar microfone';
+  ui.micBtn.setAttribute('aria-label', ui.micBtn.title);
+}
+
+async function enterVoice() {
+  if (voiceChannel === VOICE_CHANNEL) { leaveVoice(); return; }
+  try {
+    voiceStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
+    voiceChannel = VOICE_CHANNEL;
+    micMuted = false;
+    sendToOwner({ t: 'voice-join', channel: VOICE_CHANNEL });
+  } catch (err) {
+    toast(err && err.name === 'NotAllowedError' ? 'Permita o acesso ao microfone para entrar no canal de voz.' : 'Não consegui acessar o microfone.');
+  }
+  renderVoiceChannel();
+}
+
+function leaveVoice() {
+  if (voiceChannel && inRoom) sendToOwner({ t: 'voice-leave', channel: VOICE_CHANNEL });
+  voiceChannel = null;
+  voiceRoster = [];
+  for (const id of [...voiceCalls.keys()]) closeVoiceCall(id);
+  if (voiceStream) { voiceStream.getTracks().forEach((track) => track.stop()); voiceStream = null; }
+  micMuted = false;
+  renderVoiceChannel();
+}
+
+function syncVoiceCalls() {
+  const allowed = new Set(voiceRoster.map((u) => u.id));
+  for (const id of [...voiceCalls.keys()]) if (!allowed.has(id)) closeVoiceCall(id);
+  if (!voiceStream || voiceChannel !== VOICE_CHANNEL) return;
+  for (const user of voiceRoster) {
+    if (user.id !== myId && myId < user.id && !voiceCalls.has(user.id)) callVoiceUser(user.id);
+  }
+}
+
+function callVoiceUser(id) {
+  const call = peer && peer.call(id, voiceStream, { metadata: { kind: 'voice' }, sdpTransform: tuneSdp });
+  if (!call) return;
+  attachVoiceCall(id, call);
+}
+
+function attachVoiceCall(id, call) {
+  closeVoiceCall(id);
+  voiceCalls.set(id, call);
+  call.on('stream', (stream) => {
+    if (voiceCalls.get(id) !== call) return;
+    let audio = voiceAudio.get(id);
+    if (!audio) { audio = document.createElement('audio'); audio.autoplay = true; audio.dataset.peer = id; document.body.append(audio); voiceAudio.set(id, audio); }
+    audio.srcObject = stream;
+    audio.play().catch(() => toast('Clique na janela para liberar o áudio do canal de voz.'));
+  });
+  call.on('close', () => closeVoiceCall(id, call));
+  call.on('error', () => closeVoiceCall(id, call));
+}
+
+function closeVoiceCall(id, expected) {
+  const call = voiceCalls.get(id);
+  if (expected && call !== expected) return;
+  if (call) { voiceCalls.delete(id); try { call.close(); } catch {} }
+  const audio = voiceAudio.get(id);
+  if (audio) { audio.pause(); audio.srcObject = null; audio.remove(); voiceAudio.delete(id); }
+}
+
+document.querySelectorAll('.channel-select').forEach((button) => { button.onclick = () => selectChannel(button.dataset.channel); });
+ui.voiceChannelBtn.onclick = () => { selectChannel(VOICE_CHANNEL); if (voiceChannel !== VOICE_CHANNEL) enterVoice(); };
+ui.voiceToggleBtn.onclick = enterVoice;
+ui.micBtn.onclick = () => {
+  micMuted = !micMuted;
+  if (voiceStream) for (const track of voiceStream.getAudioTracks()) track.enabled = !micMuted;
+  renderVoiceChannel();
+};
+ui.chatForm.onsubmit = (event) => {
+  event.preventDefault();
+  const text = ui.chatInput.value.trim().slice(0, 500);
+  if (!text || !TEXT_CHANNELS.has(activeChannel)) return;
+  ui.chatInput.value = '';
+  sendToOwner({ t: 'chat-send', channel: activeChannel, text });
+};
 
 // ---------- Assistir ----------
 
@@ -346,8 +555,14 @@ function closeIncoming() {
 
 function setupMedia(p) {
   p.on('call', (call) => {
+    if (call.metadata && call.metadata.kind === 'voice') {
+      if (!voiceStream || voiceChannel !== VOICE_CHANNEL || !voiceRoster.some((u) => u.id === call.peer)) { call.close(); return; }
+      call.answer(voiceStream, { sdpTransform: tuneSdp });
+      attachVoiceCall(call.peer, call);
+      return;
+    }
     // Só atende quem eu escolhi assistir; qualquer outra chamada é recusada.
-    if (call.peer !== watching) { call.close(); return; }
+    if (!call.metadata || call.metadata.kind !== 'share' || call.peer !== watching) { call.close(); return; }
     closeIncoming();
     incoming = call;
     call.answer(undefined, { sdpTransform: tuneSdp });
@@ -609,7 +824,7 @@ function updateShareUi() {
 
 function callViewer(viewerId) {
   closeOutgoing(viewerId);
-  const call = peer.call(viewerId, localStream, { sdpTransform: tuneSdp });
+  const call = peer.call(viewerId, localStream, { metadata: { kind: 'share' }, sdpTransform: tuneSdp });
   if (!call) return;
   outgoing.set(viewerId, call);
   const pc = call.peerConnection;

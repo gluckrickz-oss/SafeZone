@@ -47,8 +47,17 @@ app.on('web-contents-created', (_e, contents) => {
 });
 
 function hardenSession(ses) {
-  ses.setPermissionRequestHandler((wc, permission, cb) => cb(ALLOWED_PERMISSIONS.has(permission) && isAppUrl(wc.getURL())));
-  ses.setPermissionCheckHandler((wc, permission) => !!wc && ALLOWED_PERMISSIONS.has(permission) && isAppUrl(wc.getURL()));
+  ses.setPermissionRequestHandler((wc, permission, cb, details) => {
+    const local = isAppUrl(wc.getURL());
+    const microphoneOnly = permission === 'media' && details && Array.isArray(details.mediaTypes)
+      && details.mediaTypes.includes('audio') && !details.mediaTypes.includes('video');
+    cb(local && (ALLOWED_PERMISSIONS.has(permission) || microphoneOnly));
+  });
+  ses.setPermissionCheckHandler((wc, permission, _origin, details) => {
+    const local = !!wc && isAppUrl(wc.getURL());
+    const microphoneOnly = permission === 'media' && details && details.mediaType === 'audio';
+    return local && (ALLOWED_PERMISSIONS.has(permission) || microphoneOnly);
+  });
   // A única rede que a janela usa é o servidor de apresentação do PeerJS.
   ses.webRequest.onBeforeRequest((details, cb) => {
     let u;

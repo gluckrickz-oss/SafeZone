@@ -1,6 +1,6 @@
 # CLAUDE.md — SafeZone
 
-SafeZone é a versão Linux e Windows do Isekai: salas para assistir filme/série juntos, com compartilhamento de tela e áudio.
+SafeZone é um app para Linux e Windows: salas para assistir filme/série juntos, com compartilhamento de tela, áudio, voz e texto.
 Stack: Electron + WebRTC (PeerJS). Objetivo central: **mínimo de CVEs e superfície de ataque pequena**.
 
 ## Comandos
@@ -18,7 +18,7 @@ npm run sbom            # gera build/sbom.cdx.json
 
 ## Estrutura
 
-- `main.js`: processo principal (janela, sessão, IPC, captura de som).
+- `main.js`: processo principal (janela, sessão, IPC, captura de som e permissão restrita ao microfone).
 - `preload.js`: ponte mínima `window.safezone` (contextBridge).
 - `lib/pulse.js`: parser puro do `pactl` (testável). Testes em `test/`.
 - `src/`: interface (`index.html`, `app.js`, `audio-worklet.js`, `style.css`). `src/vendor/` é gerado por `npm run vendor` e não vai para o git.
@@ -32,7 +32,7 @@ npm run sbom            # gera build/sbom.cdx.json
 4. **IPC:** todo `ipcMain.handle` passa por `handle()` (confere que o remetente é a página do app) e valida cada argumento com regex/tipo. Novo canal = nova validação + novo método no `preload.js`.
 5. **Sem shell:** processos externos só com `execFile`/`spawn` e lista de argumentos. Nunca `exec`, nunca `shell: true`, nunca montar comando por concatenação.
 6. **Sem segredos no repositório nem no pacote:** o token TURN fica só no perfil local do usuário (`~/.config/SafeZone/turn.json` no Linux; `%APPDATA%\\SafeZone\\turn.json` no Windows). No Linux, exigir modo 600. `turn.json`, `.env*`, `*.pem`, `*.key` estão no `.gitignore`: não tirar.
-7. **Rede da sala é não confiável:** toda mensagem recebida passa por `isMsg`, validação de tipo/tamanho e `rateGuard`. Só o dono da sala valida e retransmite. Manter o limite `MAX_MEMBERS` e o código de sala de 8 caracteres.
+7. **Rede da sala é não confiável:** toda mensagem recebida passa por `isMsg`, validação de tipo/tamanho e `rateGuard`. Só o dono da sala valida e retransmite. Texto fica em memória no dono da sala; voz conecta apenas participantes do canal. Manter o limite `MAX_MEMBERS` e o código de sala de 8 caracteres.
 8. **Sem telemetria**, sem recursos remotos (fontes, imagens, scripts de CDN). Tudo local.
 9. **Nada de `innerHTML` com dados externos:** usar `textContent`/`createElement`.
 

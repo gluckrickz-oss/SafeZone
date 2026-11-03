@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+- Apelido informado antes de entrar na sala e referências antigas removidas da documentação.
+- Dois canais de texto e um canal de voz, com controles de microfone.
+
 ## 1.1.0
 - Adicionada versão portátil para Windows 10/11 x64, publicada como ZIP com checksum SHA-256.
 - Pacotes Linux x64 e Windows x64 publicados na mesma release, acompanhados de checksum SHA-256; o pacote Linux inclui SBOM CycloneDX.
@@ -8,7 +12,7 @@
 - Documentadas instalação, privacidade e limitações específicas de áudio no Windows.
 
 ## 1.0.0
-- Primeira versão do SafeZone, derivada do Isekai, para Linux.
+- Primeira versão do SafeZone para Linux.
 - Som por programa via `pactl` + `parec --monitor-stream` (PulseAudio/PipeWire), no lugar do capturador do Windows.
 - Removido o `electron-builder` (origem do CVE do `minimatch`); empacotamento por `scripts/package-linux.sh`.
 - Endurecimento do Electron: sandbox, CSP, bloqueio de rede, permissões e navegação; IPC validado.

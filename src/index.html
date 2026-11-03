@@ -15,8 +15,8 @@
         <h1 class="logo">Assista junto.</h1>
         <p class="tagline">Compartilhe a janela e o som do player com quem está na sala.</p>
         <label class="field">
-          <span>Seu nome</span>
-          <input id="nameInput" class="input" maxlength="24" placeholder="Como o pessoal vai te ver" autocomplete="off">
+          <span>Apelido</span>
+          <input id="nameInput" class="input" maxlength="24" placeholder="Escolha como vão te ver na sala" autocomplete="nickname">
         </label>
         <button id="createBtn" class="btn primary wide">Criar uma sala</button>
         <div class="divider">ou entre com um convite</div>
@@ -41,7 +41,12 @@
       <header class="channel-header"><span>SafeZone</span><span class="chevron">⌄</span></header>
       <div class="channel-content">
         <p class="section-label">SALA DE FILME</p>
-        <div class="room-channel active"><span class="channel-hash">#</span><span class="room-channel-name">sala</span><span class="live-dot"></span></div>
+        <button class="room-channel channel-select active" data-channel="watch"><span class="channel-hash">▶</span><span class="room-channel-name">sala</span></button>
+        <p class="section-label">CANAIS DE TEXTO</p>
+        <button class="room-channel channel-select" data-channel="geral"><span class="channel-hash">#</span><span class="room-channel-name">geral</span></button>
+        <button class="room-channel channel-select" data-channel="filmes"><span class="channel-hash">#</span><span class="room-channel-name">filmes</span></button>
+        <p class="section-label voice-label">CANAIS DE VOZ</p>
+        <button id="voiceChannelBtn" class="room-channel voice-channel"><span class="voice-symbol">◖))</span><span class="room-channel-name">voz-geral</span><span id="voiceChannelCount" class="voice-count">0</span></button>
         <div class="invite-card">
           <span class="invite-label">CÓDIGO DE CONVITE</span>
           <button id="roomCode" class="room-code" title="Clique para copiar o código"></button>
@@ -52,7 +57,8 @@
       </div>
       <footer class="user-panel">
         <div class="user-avatar">S</div>
-        <div class="user-copy"><strong>Na sala</strong><span id="peopleCount" class="muted small"></span></div>
+        <div class="user-copy"><strong id="myNickname">Na sala</strong><span id="peopleCount" class="muted small"></span></div>
+        <button id="micBtn" class="mic-button" title="Ativar microfone" aria-label="Ativar microfone" hidden>🎙</button>
         <button id="leaveBtn" class="leave-button" title="Sair da sala" aria-label="Sair da sala">↪</button>
       </footer>
     </aside>
@@ -82,6 +88,20 @@
               <button id="fullBtn" class="icon-btn" title="Tela cheia (duplo clique)">⛶</button>
             </div>
           </div>
+        </section>
+        <section id="chatPanel" class="chat-panel" hidden>
+          <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
+          <form id="chatForm" class="chat-form">
+            <input id="chatInput" maxlength="500" class="input" placeholder="Mensagem em #geral" autocomplete="off" aria-label="Mensagem">
+            <button class="btn primary" type="submit" aria-label="Enviar mensagem">➤</button>
+          </form>
+        </section>
+        <section id="voicePanel" class="voice-panel" hidden>
+          <div class="voice-panel-icon">◖))</div>
+          <h2>Canal de voz · voz-geral</h2>
+          <p id="voicePanelHint">Entre no canal para conversar com quem está na sala.</p>
+          <ul id="voiceRoster" class="voice-roster"></ul>
+          <button id="voiceToggleBtn" class="btn primary">Entrar no canal de voz</button>
         </section>
         <aside class="members-sidebar">
           <div class="members-heading"><span>Pessoas</span><span class="member-count" id="memberCountBadge"></span></div>

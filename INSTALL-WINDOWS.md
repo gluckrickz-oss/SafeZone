@@ -7,7 +7,7 @@
 
 ## Baixar e abrir
 
-1. Baixe `safezone-1.1.0-windows-x64.zip` na página [Releases do SafeZone](https://github.com/gluckrickz-oss/SafeZone/releases/latest).
+1. Baixe `safezone-1.2.0-windows-x64.zip` na página [Releases do SafeZone](https://github.com/gluckrickz-oss/SafeZone/releases/latest).
 2. Extraia o ZIP para uma pasta de sua preferência.
 3. Abra `SafeZone.exe`.
 
@@ -18,6 +18,8 @@ O pacote é portátil: não precisa de instalador nem de privilégios de adminis
 O Windows permite capturar o áudio de saída do sistema inteiro. Isso inclui outros aplicativos, como chamadas, sons de notificação e a reprodução do próprio PC. Na janela de compartilhamento, escolha **Sem som** se não quiser enviar áudio. Para evitar que vozes ou notificações entrem na transmissão, silencie ou feche os outros aplicativos antes de compartilhar.
 
 Ao contrário da versão Linux, o Windows não oferece a escolha de capturar somente o áudio de um programa nesta versão.
+
+Para conversar por voz, entre no canal `voz-geral` e permita o acesso ao microfone. O canal de voz está disponível no Windows e no Linux.
 
 ## Atualizações e remoção
 

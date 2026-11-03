@@ -1,15 +1,15 @@
-# SafeZone (Linux e Windows)
+# SafeZone 1.2.0 (Linux e Windows)
 
-Assista filme e série com os amigos: cada um entra numa sala com um código e quem transmite compartilha a janela do player. No Linux, você escolhe o programa cujo áudio será enviado; no Windows, pode enviar o áudio do sistema inteiro ou nenhum áudio.
+Assista e converse com os amigos: crie uma sala, compartilhe o código e use os canais de texto e voz. No Linux, você escolhe o programa cujo áudio será enviado; no Windows, pode enviar o áudio do sistema inteiro ou nenhum áudio.
 
-Esta é a versão multiplataforma do Isekai, com superfície de ataque reduzida e foco em ter poucas dependências.
+O SafeZone é multiplataforma, com superfície de ataque reduzida e foco em ter poucas dependências.
 
 ## Downloads
 
-- [Baixar para Linux x64 (.tar.gz)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.1.0-linux-x64.tar.gz)
-- [SHA-256 do pacote Linux](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.1.0-linux-x64.tar.gz.sha256)
-- [Baixar para Windows 10/11 x64 (ZIP)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.1.0-windows-x64.zip)
-- [SHA-256 do pacote Windows](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.1.0-windows-x64.zip.sha256)
+- [Baixar para Linux x64 (.tar.gz)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.2.0-linux-x64.tar.gz)
+- [SHA-256 do pacote Linux](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.2.0-linux-x64.tar.gz.sha256)
+- [Baixar para Windows 10/11 x64 (ZIP)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.2.0-windows-x64.zip)
+- [SHA-256 do pacote Windows](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.2.0-windows-x64.zip.sha256)
 - [Todas as versões e notas de lançamento](https://github.com/gluckrickz-oss/SafeZone/releases)
 
 ## Requisitos Linux
@@ -20,11 +20,11 @@ Esta é a versão multiplataforma do Isekai, com superfície de ataque reduzida 
 
 ## Instalar (pacote pronto)
 
-Baixe o [pacote Linux x64](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.1.0-linux-x64.tar.gz) e o [checksum SHA-256](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.1.0-linux-x64.tar.gz.sha256):
+Baixe o [pacote Linux x64](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.2.0-linux-x64.tar.gz) e o [checksum SHA-256](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.2.0-linux-x64.tar.gz.sha256):
 
 ```bash
-tar xzf safezone-1.1.0-linux-x64.tar.gz
-cd safezone-1.1.0-linux-x64
+tar xzf safezone-1.2.0-linux-x64.tar.gz
+cd safezone-1.2.0-linux-x64
 ./install.sh
 safezone
 ```
@@ -33,7 +33,7 @@ O `install.sh` instala só para o seu usuário em `~/.local`. Ele só pede `sudo
 
 ## Instalar no Windows
 
-Baixe [SafeZone 1.1.0 para Windows x64](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.1.0-windows-x64.zip), extraia o ZIP e abra `SafeZone.exe`. O pacote é portátil, não precisa de instalador nem de privilégios de administrador. A versão não é assinada e o Windows pode exibir o aviso do SmartScreen; confira o [SHA-256](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.1.0-windows-x64.zip.sha256) antes de abrir.
+Baixe [SafeZone 1.2.0 para Windows x64](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.2.0-windows-x64.zip), extraia o ZIP e abra `SafeZone.exe`. O pacote é portátil, não precisa de instalador nem de privilégios de administrador. A versão não é assinada e o Windows pode exibir o aviso do SmartScreen; confira o [SHA-256](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.2.0-windows-x64.zip.sha256) antes de abrir.
 
 ## Rodar a partir do código
 
@@ -50,10 +50,10 @@ npm run audit     # npm audit
 
 ## Como usar
 
-1. Coloque seu nome e clique em **Criar sala**. Clique no código no topo para copiar e mande para o pessoal.
-2. Os outros colocam o código (8 letras/números) e clicam em **Entrar**.
-3. Quem vai passar o filme clica em **Compartilhar tela**, escolhe a janela (no Wayland o sistema pergunta) e, embaixo, de qual programa sai o som.
-4. Para assistir, clique no nome de quem está **Transmitindo**. Duplo clique no vídeo deixa em tela cheia.
+1. Escolha seu apelido antes de criar uma sala ou entrar com um código de convite.
+2. Use `#geral` e `#filmes` para conversar por texto. As mensagens ficam na memória do computador que criou a sala.
+3. Entre em `voz-geral` e permita o microfone; o botão 🎙 silencia e ativa sua voz.
+4. Para assistir, clique em **Compartilhar tela**, escolha a janela e o áudio. Para ver a transmissão, selecione quem está transmitindo.
 
 A lista de programas com som mostra só quem está tocando áudio **agora** no Linux: dê play no player antes de abrir "Compartilhar tela".
 
@@ -63,31 +63,18 @@ No Windows, a captura de áudio oferece o som do sistema inteiro (todas as aplic
 
 - Netflix, Prime e Disney+ no navegador aparecem pretos (proteção contra cópia).
 - A sala fica no PC de quem criou: se essa pessoa fechar o SafeZone, a sala acaba.
-- A sala aceita até 12 pessoas.
+- As salas aceitam até 12 pessoas. A voz usa conexões diretas entre participantes do canal; a qualidade depende da rede e dos microfones disponíveis.
 
 ## Como o som de um programa só funciona no Linux
 
 `pactl` lista os streams de áudio (cada programa tocando é um "sink input") e `parec --monitor-stream=N` grava **somente** o stream escolhido, sem mexer nas suas saídas: você continua ouvindo normalmente e a voz do Discord não entra, a menos que você escolha o Discord. O PCM (16 bits, 48 kHz, estéreo) vai para um AudioWorklet e vira a faixa de áudio da transmissão WebRTC (Opus estéreo, 256 kbps).
 
-## O que mudou em relação ao Isekai (segurança)
+## Segurança
 
-| Tema | Isekai | SafeZone |
-|---|---|---|
-| CVE `minimatch 3.1.5` (CVE-2026-118764) | presente (vinha do electron-builder) | removido: o empacotador não é mais dependência |
-| Dependências no lockfile | 246 | só Electron e PeerJS (e as dependências deles), em devDependencies |
-| Dependências dentro do app final | `node_modules/peerjs` | nenhuma: só 1 arquivo `peerjs.min.js` copiado |
-| Token TURN da Cloudflare | `turn.json` empacotado dentro do .exe | nunca empacotado; fica no perfil local do usuário |
-| Sandbox do Electron | não definido explicitamente | `sandbox: true` + `app.enableSandbox()` |
-| CSP | nenhuma | restrita a `self` + `0.peerjs.com` |
-| Rede da janela | livre | bloqueada, exceto o servidor PeerJS |
-| Permissões, navegação, novas janelas | padrão | negadas (só captura de tela e tela cheia) |
-| IPC | sem validação | só aceita chamadas da página do app e valida cada argumento |
-| Execução de processos | `execFile`/`spawn` | idem, sempre com lista de argumentos (sem shell) e IDs validados |
-| Código da sala | 6 caracteres (30 bits) | 8 caracteres (40 bits) |
-| Mensagens da sala | confiadas | formato, tamanho, taxa e limite de 12 pessoas conferidos |
-| Chamadas recebidas | só de quem se assiste | idem; conexões de dados em quem não é dono são recusadas |
-| `.npmrc` / `.gitignore` | ausentes | registry fixo, versões exatas, `.env*` e `turn.json` ignorados |
-| Fontes e imagem de fundo | pacote local de fontes | fontes do sistema (sem arquivos binários de terceiros) |
+- O app usa sandbox, CSP restrita e validação das mensagens recebidas.
+- O código da sala tem 8 caracteres; as salas aceitam até 12 pessoas.
+- O token TURN nunca é incluído no repositório nem no pacote.
+- A janela só acessa o servidor de sinalização PeerJS e recursos locais do app.
 
 ## TURN opcional
 
@@ -101,7 +88,7 @@ No Linux, rode `chmod 600 ~/.config/SafeZone/turn.json`. No Windows, mantenha a 
 
 ## Privacidade
 
-O SafeZone não tem telemetria. O nome e a qualidade preferida ficam no armazenamento local do perfil Electron; o nome é compartilhado com a sala enquanto você está conectado. O PeerJS (`0.peerjs.com`) é usado para sinalização; STUN públicos podem observar endereços IP. O vídeo e o áudio usam WebRTC com criptografia em trânsito. Se TURN estiver configurado, a mídia pode passar pelo relay. O código da sala é a única barreira de entrada: quem souber o código pode tentar entrar. Veja [SECURITY.md](SECURITY.md) para o modelo de ameaça e instruções para apagar as configurações locais.
+O SafeZone não tem telemetria. O apelido e a qualidade preferida ficam no armazenamento local do perfil Electron; o apelido é compartilhado com a sala enquanto você está conectado. Mensagens de texto passam pelo computador que criou a sala e ficam em memória até ela fechar. Voz, vídeo e áudio usam WebRTC com criptografia em trânsito; a voz é enviada às pessoas no canal de voz. Se TURN estiver configurado, a mídia pode passar pelo relay. O PeerJS (`0.peerjs.com`) é usado para sinalização; STUN públicos podem observar endereços IP. O código da sala é a única barreira de entrada: quem souber o código pode tentar entrar. Veja [SECURITY.md](SECURITY.md) para o modelo de ameaça e instruções para apagar as configurações locais.
 
 ## Limitações conhecidas
 

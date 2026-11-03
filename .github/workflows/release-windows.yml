@@ -5,7 +5,15 @@ on:
     branches: [main]
     paths:
       - package.json
+      - package-lock.json
       - scripts/package-windows.js
+      - main.js
+      - preload.js
+      - src/**
+      - lib/**
+      - README.md
+      - SECURITY.md
+      - CHANGELOG.md
 
 permissions:
   contents: write
@@ -25,6 +33,9 @@ jobs:
           node-version: 22
       - name: Install locked dependencies
         run: npm ci
+      - name: Download Electron Windows binary
+        shell: bash
+        run: node node_modules/electron/install.js
       - name: Audit dependencies
         run: npm run audit
       - name: Check JavaScript syntax

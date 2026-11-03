@@ -1,7 +1,7 @@
 {
   "name": "safezone",
-  "version": "1.1.0",
-  "description": "SafeZone: salas para assistir filme e série juntos, com áudio selecionado (Linux e Windows).",
+  "version": "1.2.0",
+  "description": "SafeZone: salas para assistir e conversar por voz e texto (Linux e Windows).",
   "main": "main.js",
   "private": true,
   "engines": { "node": ">=20" },

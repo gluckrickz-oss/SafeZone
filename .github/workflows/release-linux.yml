@@ -6,6 +6,15 @@ on:
     paths:
       - .github/workflows/release-linux.yml
       - scripts/package-linux.sh
+      - package.json
+      - package-lock.json
+      - main.js
+      - preload.js
+      - src/**
+      - lib/**
+      - README.md
+      - SECURITY.md
+      - CHANGELOG.md
 
 permissions:
   contents: write
@@ -37,5 +46,10 @@ jobs:
         run: |
           version="$(node -p "require('./package.json').version")"
           name="safezone-${version}-linux-x64"
+          for attempt in $(seq 1 60); do
+            if gh release view "v${version}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then break; fi
+            sleep 10
+          done
+          gh release view "v${version}" --repo "${GITHUB_REPOSITORY}" >/dev/null
           gh release upload "v${version}" "build/${name}.tar.gz" "build/${name}.tar.gz.sha256" --clobber --repo "${GITHUB_REPOSITORY}"
           gh release edit "v${version}" --title "SafeZone ${version} para Linux e Windows" --notes-file CHANGELOG.md --repo "${GITHUB_REPOSITORY}"

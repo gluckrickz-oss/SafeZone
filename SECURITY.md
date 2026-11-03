@@ -22,6 +22,7 @@ O mantenedor avalia o impacto, prepara uma correção, publica uma versão atual
 - CSP local restrita; a página aceita conexão de sinalização apenas com `0.peerjs.com`.
 - IPC limitado à página local e com validação de argumentos; processos externos são iniciados sem shell.
 - Mensagens de sala validadas, com limite de tamanho, limite de frequência e até 12 participantes.
+- A permissão de mídia libera apenas microfone, sem acesso à câmera. Mensagens de texto são retransmitidas pelo computador que criou a sala; a voz é enviada por WebRTC aos participantes do canal.
 - Credenciais TURN opcionais ficam em `~/.config/SafeZone/turn.json` no Linux ou `%APPDATA%\SafeZone\turn.json` no Windows. No Linux, arquivos com permissões mais abertas que `600` são ignorados.
 - Dependências declaradas com versões exatas, lockfile versionado, auditoria de dependências e varredura de segredos na automação do GitHub.
 
@@ -36,8 +37,8 @@ O mantenedor avalia o impacto, prepara uma correção, publica uma versão atual
 ## Dados e armazenamento
 
 - O SafeZone não tem telemetria nem conta de usuário.
-- O nome e a qualidade preferida ficam no armazenamento local do perfil Electron; o nome também é transmitido aos membros da sala enquanto a sessão está ativa.
-- O código da sala, estado de transmissão, lista de participantes e mídia existem durante a sessão. O servidor PeerJS é usado para sinalização e os peers negociam a conexão WebRTC.
+- O apelido e a qualidade preferida ficam no armazenamento local do perfil Electron; o apelido também é transmitido aos membros da sala enquanto a sessão está ativa.
+- O código da sala, mensagens de texto em memória, estado de transmissão, lista de participantes e mídia existem durante a sessão. O servidor PeerJS é usado para sinalização e os peers negociam a conexão WebRTC.
 - O token TURN é opcional e fica no arquivo local indicado acima. No Windows, ele fica no perfil do usuário, protegido pelas permissões da pasta de perfil. Não o inclua em issues, logs ou commits.
 - Para remover preferências e o token TURN, feche o SafeZone e apague `~/.config/SafeZone` no Linux ou `%APPDATA%\SafeZone` no Windows. Isso encerra a configuração local e exige recriar o token TURN se você voltar a usá-lo.
 
