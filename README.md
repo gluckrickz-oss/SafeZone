@@ -76,7 +76,7 @@ No Windows, a captura de áudio oferece o som do sistema inteiro (todas as aplic
 ## Segurança
 
 - O app usa sandbox, CSP restrita e validação das mensagens recebidas.
-- O convite da sala tem 13 caracteres aleatórios; as salas aceitam até 12 pessoas. Convites da versão anterior com 8 caracteres não funcionam em salas criadas pela versão nova.
+- O convite da sala tem 13 caracteres aleatórios; as salas aceitam até 12 pessoas. Salas e convites de versões anteriores com 8 caracteres não são compatíveis; todos precisam atualizar para a mesma versão.
 - O token TURN nunca é incluído no repositório nem no pacote.
 - A janela só acessa o servidor de sinalização PeerJS e recursos locais do app.
 
