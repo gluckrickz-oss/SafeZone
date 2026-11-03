@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0
+- Adicionada versão portátil para Windows 10/11 x64, publicada como ZIP com checksum SHA-256.
+- Captura de áudio no Windows usa loopback do sistema inteiro; é possível transmitir sem áudio. O áudio não é isolado por programa nessa plataforma.
+- Adicionada publicação automatizada de release Windows a partir do versionamento no `package.json`.
+- Documentadas instalação, privacidade e limitações específicas de áudio no Windows.
+
 ## 1.0.0
 - Primeira versão do SafeZone, derivada do Isekai, para Linux.
 - Som por programa via `pactl` + `parec --monitor-stream` (PulseAudio/PipeWire), no lugar do capturador do Windows.

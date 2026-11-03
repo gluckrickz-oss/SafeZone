@@ -1,10 +1,16 @@
-# SafeZone (Linux)
+# SafeZone (Linux e Windows)
 
-Assista filme e série com os amigos: cada um entra numa sala com um código, quem vai passar o filme compartilha a janela do player e **só o som desse programa** vai para a sala. A voz da call no Discord não vaza junto.
+Assista filme e série com os amigos: cada um entra numa sala com um código e quem transmite compartilha a janela do player. No Linux, você escolhe o programa cujo áudio será enviado; no Windows, pode enviar o áudio do sistema inteiro ou nenhum áudio.
 
-Esta é a versão para Linux do Isekai, com superfície de ataque reduzida e foco em ter o mínimo de CVEs.
+Esta é a versão multiplataforma do Isekai, com superfície de ataque reduzida e foco em ter poucas dependências.
 
-## Requisitos
+## Downloads
+
+- [Baixar para Windows 10/11 x64 (ZIP)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.1.0-windows-x64.zip)
+- [SHA-256 do pacote Windows](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.1.0-windows-x64.zip.sha256)
+- [Todas as versões e notas de lançamento](https://github.com/gluckrickz-oss/SafeZone/releases)
+
+## Requisitos Linux
 
 - Linux x86_64 com PulseAudio ou PipeWire (com `pipewire-pulse`)
 - `pactl` e `parec` (pacote `pulseaudio-utils` no Debian/Ubuntu; `libpulse` no Arch/Fedora)
@@ -13,13 +19,17 @@ Esta é a versão para Linux do Isekai, com superfície de ataque reduzida e foc
 ## Instalar (pacote pronto)
 
 ```bash
-tar xzf safezone-1.0.0-linux-x64.tar.gz
-cd safezone-1.0.0-linux-x64
+tar xzf safezone-1.1.0-linux-x64.tar.gz
+cd safezone-1.1.0-linux-x64
 ./install.sh
 safezone
 ```
 
 O `install.sh` instala só para o seu usuário em `~/.local`. Ele só pede `sudo` se o seu sistema bloquear o sandbox do Chromium (caso do Ubuntu 24.04): nesse caso ajusta o `chrome-sandbox` (setuid root). O sandbox fica **ligado**. Só use `SAFEZONE_NO_SANDBOX=1 safezone` para diagnóstico.
+
+## Instalar no Windows
+
+Baixe [SafeZone 1.1.0 para Windows x64](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.1.0-windows-x64.zip), extraia o ZIP e abra `SafeZone.exe`. O pacote é portátil, não precisa de instalador nem de privilégios de administrador. A versão não é assinada e o Windows pode exibir o aviso do SmartScreen; confira o [SHA-256](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.1.0-windows-x64.zip.sha256) antes de abrir.
 
 ## Rodar a partir do código
 
@@ -29,6 +39,7 @@ npm test          # testes do leitor de áudio
 npm start         # abre o app (precisa do chrome-sandbox configurado)
 npm run start:dev # abre sem sandbox: só para desenvolvimento
 npm run package:linux   # gera build/safezone-<versão>-linux-x64.tar.gz + .sha256
+npm run package:windows # gera a pasta portátil em build/ (rode em Windows x64)
 npm run sbom      # gera build/sbom.cdx.json (CycloneDX)
 npm run audit     # npm audit
 ```
@@ -40,7 +51,9 @@ npm run audit     # npm audit
 3. Quem vai passar o filme clica em **Compartilhar tela**, escolhe a janela (no Wayland o sistema pergunta) e, embaixo, de qual programa sai o som.
 4. Para assistir, clique no nome de quem está **Transmitindo**. Duplo clique no vídeo deixa em tela cheia.
 
-A lista de programas com som mostra só quem está tocando áudio **agora**: dê play no player antes de abrir "Compartilhar tela".
+A lista de programas com som mostra só quem está tocando áudio **agora** no Linux: dê play no player antes de abrir "Compartilhar tela".
+
+No Windows, a captura de áudio oferece o som do sistema inteiro (todas as aplicações) ou transmissão sem som. Ela não isola um programa específico; chamadas, notificações e outros sons também podem ser incluídos. Silencie o que não quiser transmitir.
 
 ### Avisos
 
@@ -59,7 +72,7 @@ A lista de programas com som mostra só quem está tocando áudio **agora**: dê
 | CVE `minimatch 3.1.5` (CVE-2026-118764) | presente (vinha do electron-builder) | removido: o empacotador não é mais dependência |
 | Dependências no lockfile | 246 | só Electron e PeerJS (e as dependências deles), em devDependencies |
 | Dependências dentro do app final | `node_modules/peerjs` | nenhuma: só 1 arquivo `peerjs.min.js` copiado |
-| Token TURN da Cloudflare | `turn.json` empacotado dentro do .exe | nunca empacotado; fica em `~/.config/SafeZone/turn.json` (chmod 600) |
+| Token TURN da Cloudflare | `turn.json` empacotado dentro do .exe | nunca empacotado; fica no perfil local do usuário |
 | Sandbox do Electron | não definido explicitamente | `sandbox: true` + `app.enableSandbox()` |
 | CSP | nenhuma | restrita a `self` + `0.peerjs.com` |
 | Rede da janela | livre | bloqueada, exceto o servidor PeerJS |
@@ -74,13 +87,13 @@ A lista de programas com som mostra só quem está tocando áudio **agora**: dê
 
 ## TURN opcional
 
-Se a internet de alguém bloqueia a conexão direta, crie `~/.config/SafeZone/turn.json`:
+Se a internet de alguém bloqueia a conexão direta, crie `turn.json` no perfil do app: `~/.config/SafeZone/turn.json` no Linux ou `%APPDATA%\SafeZone\turn.json` no Windows:
 
 ```json
 { "keyId": "SEU_KEY_ID", "apiToken": "SEU_TOKEN" }
 ```
 
-e rode `chmod 600 ~/.config/SafeZone/turn.json`. Arquivo legível por outros usuários é ignorado.
+No Linux, rode `chmod 600 ~/.config/SafeZone/turn.json`. No Windows, mantenha a pasta de perfil do usuário com as permissões padrão do Windows.
 
 ## Privacidade
 
@@ -89,5 +102,5 @@ O SafeZone não tem telemetria. O nome e a qualidade preferida ficam no armazena
 ## Limitações conhecidas
 
 - A criptografia é a do WebRTC (DTLS-SRTP), mas **não há autenticação de usuários**: quem tem o código entra. Troque o código criando outra sala.
-- O pacote não é assinado. Confira o `.sha256` e, se publicar, assine o `.tar.gz` (`cosign` ou `gpg`).
+- Os pacotes ainda não são assinados. Confira o `.sha256`; ele detecta alteração acidental, mas não comprova sozinho quem publicou o arquivo.
 - Sem atualização automática: atualize o Electron e o PeerJS (veja `SECURITY.md`).

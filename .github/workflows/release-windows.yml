@@ -1,0 +1,52 @@
+name: Windows release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - package.json
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-publish:
+    name: Build and publish Windows x64
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Audit dependencies
+        run: npm run audit
+      - name: Check JavaScript syntax
+        shell: bash
+        run: node --check main.js && node --check preload.js && node --check lib/pulse.js && node --check src/app.js && node --check src/audio-worklet.js && node --check scripts/sbom.js && node --check scripts/vendor.js && node --check scripts/package-windows.js
+      - name: Package Windows application
+        run: npm run package:windows
+      - name: Create ZIP and checksum
+        shell: pwsh
+        run: |
+          $version = node -p "require('./package.json').version"
+          $name = "safezone-$version-windows-x64"
+          $folder = "build/$name"
+          $zip = "build/$name.zip"
+          Compress-Archive -Path "$folder/*" -DestinationPath $zip -CompressionLevel Optimal -Force
+          $hash = (Get-FileHash -Path $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $name.zip" | Set-Content -Path "$zip.sha256" -Encoding ascii
+      - name: Publish GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $version = node -p "require('./package.json').version"
+          $name = "safezone-$version-windows-x64"
+          $tag = "v$version"
+          gh release create $tag "build/$name.zip" "build/$name.zip.sha256" --target $env:GITHUB_SHA --title "SafeZone $version para Windows" --notes-file CHANGELOG.md --repo $env:GITHUB_REPOSITORY

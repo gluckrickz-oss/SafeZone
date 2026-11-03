@@ -29,7 +29,7 @@ const $ = (id) => document.getElementById(id);
 const ui = Object.fromEntries(['home', 'room', 'nameInput', 'codeInput', 'createBtn', 'joinBtn', 'homeError', 'roomCode', 'peopleCount',
   'shareBtn', 'shareStatus', 'shareIdle', 'leaveBtn', 'memberList', 'memberCountBadge', 'watchTitle', 'stats', 'stage', 'video', 'stageMsg', 'stageEmpty', 'controls',
   'muteBtn', 'volume', 'fullBtn', 'shareModal', 'sourceGrid', 'appSelect', 'qualitySelect', 'cancelShare', 'confirmShare', 'toast',
-  'tabs', 'waylandNote'].map((id) => [id, $(id)]));
+  'tabs', 'waylandNote', 'audioLabel', 'audioHint'].map((id) => [id, $(id)]));
 
 const isId = (s) => typeof s === 'string' && /^[\w-]{1,64}$/.test(s);
 const cleanName = (s) => String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 24) || 'Alguém';
@@ -41,14 +41,17 @@ function rateGuard() {
 }
 
 let peer = null, myId = null, myName = '', roomCode = '', isOwner = false, ownerConn = null, inRoom = false;
-let lastOwnerMsg = 0, heartbeat = null, connectTimer = null, wayland = false;
+let lastOwnerMsg = 0, heartbeat = null, connectTimer = null, wayland = false, isWindows = false;
 const members = new Map(); // só o dono: id -> { conn, name, streaming, lastSeen }
 let memberList = [];       // todos: [{ id, name, streaming, owner }]
 let localStream = null, audioPipe = null;
 const outgoing = new Map();
 let watching = null, watchAskedAt = 0, incoming = null, statsTimer = null;
 
-window.safezone.platform().then((p) => { wayland = !!(p && p.wayland); }).catch(() => {});
+const platformReady = window.safezone.platform().then((p) => {
+  wayland = !!(p && p.wayland);
+  isWindows = !!(p && p.windows);
+}).catch(() => {});
 
 function startConnectTimer(text) {
   clearTimeout(connectTimer);
@@ -456,6 +459,7 @@ let sources = [], sourceKind = 'window', chosenSource = null;
 ui.shareBtn.onclick = () => { if (localStream) stopShare(false); else openShareModal(); };
 
 async function openShareModal() {
+  await platformReady;
   chosenSource = null;
   ui.confirmShare.disabled = true;
   ui.sourceGrid.replaceChildren();
@@ -470,6 +474,15 @@ async function openShareModal() {
 }
 
 function fillApps(apps) {
+  if (isWindows) {
+    ui.appSelect.replaceChildren(new Option('Som do sistema (todas as aplicações)', 'system'), new Option('Sem som', ''));
+    ui.appSelect.value = 'system';
+    ui.audioLabel.textContent = 'Áudio da transmissão';
+    ui.audioHint.textContent = 'No Windows, o áudio capturado inclui todos os sons do sistema, inclusive chamadas e notificações. Selecione “Sem som” para transmitir sem áudio.';
+    return;
+  }
+  ui.audioLabel.textContent = 'Som de qual programa?';
+  ui.audioHint.textContent = 'Só o som do programa escolhido vai para a sala — a voz do Discord não vaza. Netflix, Prime e Disney+ no navegador podem aparecer pretos por causa da proteção contra cópia.';
   ui.appSelect.replaceChildren(new Option('Sem som', ''));
   apps.sort((a, b) => a.name.localeCompare(b.name));
   for (const a of apps) {
@@ -538,10 +551,10 @@ async function confirmShare() {
   }
 }
 
-async function captureSource(source) {
+async function captureSource(source, captureSystemAudio) {
   const attempts = [
-    { video: { width: { max: quality.width }, height: { max: quality.height }, frameRate: { ideal: 60, max: 60 } }, audio: false },
-    { video: true, audio: false },
+    { video: { width: { max: quality.width }, height: { max: quality.height }, frameRate: { ideal: 60, max: 60 } }, audio: captureSystemAudio },
+    { video: true, audio: captureSystemAudio },
   ];
   let lastError = null;
   for (const constraints of attempts) {
@@ -554,7 +567,8 @@ async function captureSource(source) {
 }
 
 async function startShare(source, appId) {
-  const stream = await captureSource(source);
+  const captureSystemAudio = isWindows && appId === 'system';
+  const stream = await captureSource(source, captureSystemAudio);
   const [videoTrack] = stream.getVideoTracks();
   const settings = videoTrack.getSettings();
   if (settings.width > quality.width || settings.height > quality.height) {
@@ -562,7 +576,7 @@ async function startShare(source, appId) {
   }
   videoTrack.contentHint = 'motion';
   videoTrack.onended = () => stopShare(false);
-  if (appId) {
+  if (appId && !isWindows) {
     try { audioPipe = await startAudioPipe(appId); }
     catch (err) { stream.getTracks().forEach((t) => t.stop()); throw err; }
     stream.addTrack(audioPipe.track);

@@ -1,7 +1,7 @@
 {
   "name": "safezone",
-  "version": "1.0.0",
-  "description": "SafeZone: salas para assistir filme e série juntos, com o som de um programa só (Linux).",
+  "version": "1.1.0",
+  "description": "SafeZone: salas para assistir filme e série juntos, com áudio selecionado (Linux e Windows).",
   "main": "main.js",
   "private": true,
   "engines": { "node": ">=20" },
@@ -13,7 +13,8 @@
     "test": "node --test test/*.test.js",
     "sbom": "node scripts/sbom.js",
     "audit": "npm audit --audit-level=low",
-    "package:linux": "sh scripts/package-linux.sh"
+    "package:linux": "sh scripts/package-linux.sh",
+    "package:windows": "node scripts/package-windows.js"
   },
   "devDependencies": {
     "electron": "45.2.1",

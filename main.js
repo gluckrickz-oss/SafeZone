@@ -1,5 +1,5 @@
 'use strict';
-// SafeZone (Linux): salas para assistir filme e série juntos, com a tela e o som de UM programa só.
+// SafeZone (Linux/Windows): salas para assistir filme e série juntos.
 const { app, BrowserWindow, ipcMain, desktopCapturer, session, nativeTheme, clipboard } = require('electron');
 const { spawn, execFile } = require('node:child_process');
 const fs = require('node:fs');
@@ -7,7 +7,7 @@ const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const pulse = require('./lib/pulse');
 
-if (process.platform !== 'linux') { console.error('SafeZone: esta versão é só para Linux.'); process.exit(1); }
+if (!['linux', 'win32'].includes(process.platform)) { console.error('SafeZone: esta versão é para Linux e Windows 64 bits.'); process.exit(1); }
 
 app.setName('SafeZone');
 app.enableSandbox();
@@ -64,7 +64,10 @@ function hardenSession(ses) {
       const sources = await desktopCapturer.getSources({ types: ['screen', 'window'], thumbnailSize: { width: 0, height: 0 } });
       const source = isWayland ? sources[0] : sources.find((s) => s.id === pendingSourceId);
       pendingSourceId = null;
-      callback(source ? { video: source } : {});
+      const streams = source ? { video: source } : {};
+      // O loopback do Electron captura o áudio de saída do sistema inteiro e só existe no Windows.
+      if (source && process.platform === 'win32' && request.audioRequested) streams.audio = 'loopback';
+      callback(streams);
     } catch { callback({}); }
   });
 }
@@ -95,7 +98,7 @@ function handle(channel, fn) {
   });
 }
 
-handle('platform', () => ({ wayland: isWayland }));
+handle('platform', () => ({ wayland: isWayland, windows: process.platform === 'win32' }));
 
 handle('get-sources', async () => {
   if (isWayland) return [];
@@ -115,10 +118,12 @@ const pactl = (args) => new Promise((resolve, reject) => {
 });
 
 handle('list-apps', async () => {
+  if (process.platform !== 'linux') return [];
   try { return pulse.listApps(await pactl(['list', 'sink-inputs']), pulse.makeIsOwn(process.pid)); } catch { return []; }
 });
 
 handle('start-audio', async (event, id) => {
+  if (process.platform !== 'linux') return { ok: false, error: 'Captura de áudio por programa está disponível apenas no Linux.' };
   if (typeof id !== 'string' || !/^\d{1,9}$/.test(id)) return { ok: false, error: 'programa inválido' };
   stopAudio();
   let target;
@@ -161,7 +166,8 @@ let turnCache = null;
 function loadTurnConfig() {
   const file = path.join(app.getPath('userData'), 'turn.json');
   try {
-    if (fs.statSync(file).mode & 0o077) { console.warn('turn.json ignorado: rode chmod 600 nele.'); return null; }
+    // O perfil do Windows já usa ACLs próprias; bits POSIX não representam suas permissões.
+    if (process.platform === 'linux' && (fs.statSync(file).mode & 0o077)) { console.warn('turn.json ignorado: rode chmod 600 nele.'); return null; }
     const c = JSON.parse(fs.readFileSync(file, 'utf8'));
     if (typeof c.keyId === 'string' && /^[A-Za-z0-9_-]{8,64}$/.test(c.keyId) && typeof c.apiToken === 'string' && c.apiToken.length <= 256) return c;
   } catch {}
