@@ -20,6 +20,7 @@ O mantenedor avalia o impacto, prepara uma correção, publica uma versão atual
 
 - Electron com `sandbox`, `contextIsolation`, `webSecurity` ativos e `nodeIntegration` desativado.
 - CSP local restrita; a página aceita conexão de sinalização apenas com `0.peerjs.com`.
+- A seleção/cópia de texto, menu de contexto e atalho de impressão são bloqueados. No Windows, a janela usa `setContentProtection`; ao perder foco, a interface também fica preta.
 - A consulta de atualização é feita pelo processo principal a uma URL fixa da API pública do GitHub; a instalação continua manual pelo instalador publicado.
 - IPC limitado à página local e com validação de argumentos; processos externos são iniciados sem shell.
 - Mensagens de sala validadas, com limite de tamanho, limite de frequência e até 12 participantes.
@@ -33,6 +34,7 @@ O mantenedor avalia o impacto, prepara uma correção, publica uma versão atual
 - O dono da sala coordena a lista de participantes; não há moderação, bloqueio individual ou confirmação de identidade.
 - WebRTC cifra mídia em trânsito, mas o SafeZone não oferece criptografia de ponta a ponta com identidade verificada. A sinalização usa o serviço PeerJS; STUN públicos podem observar endereços IP. Se TURN estiver configurado, o tráfego pode passar por esse relay.
 - Conteúdo protegido por DRM pode aparecer preto durante a captura de tela.
+- O Linux não oferece ao SafeZone uma proteção nativa contra captura de tela. A tela preta ao perder foco é apenas melhor esforço; capturadores que não mudam o foco, câmeras externas ou software privilegiado podem registrar a janela. No Windows, alguns capturadores privilegiados também podem contornar a proteção.
 - A verificação no app informa se há uma release nova, mas não instala arquivos por conta própria. O usuário baixa e executa o instalador publicado no GitHub; confira o SHA-256 antes de abrir.
 
 ## Dados e armazenamento
