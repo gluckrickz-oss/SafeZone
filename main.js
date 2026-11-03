@@ -96,8 +96,8 @@ function createWindow() {
       backgroundThrottling: false, devTools: !app.isPackaged,
     },
   });
-  // Windows excludes this window from standard desktop capture APIs.
-  if (process.platform === 'win32') win.setContentProtection(true);
+  // Do not apply SetWindowDisplayAffinity to the primary window: Windows can leave
+  // protected Electron windows hidden after startup/show transitions.
   const showFallback = setTimeout(() => { if (win && !win.isDestroyed() && !win.isVisible()) win.show(); }, 8000);
   win.once('ready-to-show', () => { clearTimeout(showFallback); if (win && !win.isDestroyed()) { win.show(); win.focus(); } });
   win.webContents.on('did-fail-load', (_event, code, description, url, isMainFrame) => {
