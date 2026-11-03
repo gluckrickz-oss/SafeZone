@@ -7,7 +7,7 @@
 
 ## Baixar e abrir
 
-1. Baixe `safezone-1.3.3-windows-x64-setup.exe` na página [Releases do SafeZone](https://github.com/gluckrickz-oss/SafeZone/releases/latest).
+1. Baixe `safezone-1.3.4-windows-x64-setup.exe` na página [Releases do SafeZone](https://github.com/gluckrickz-oss/SafeZone/releases/latest).
 2. Confira o checksum SHA-256 publicado junto ao instalador.
 3. Execute o instalador. Ele instala só para o seu usuário, sem privilégios de administrador.
 
