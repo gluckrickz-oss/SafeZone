@@ -7,7 +7,7 @@
 
 ## Baixar e abrir
 
-1. Baixe `safezone-1.3.0-windows-x64-setup.exe` na página [Releases do SafeZone](https://github.com/gluckrickz-oss/SafeZone/releases/latest).
+1. Baixe `safezone-1.3.2-windows-x64-setup.exe` na página [Releases do SafeZone](https://github.com/gluckrickz-oss/SafeZone/releases/latest).
 2. Confira o checksum SHA-256 publicado junto ao instalador.
 3. Execute o instalador. Ele instala só para o seu usuário, sem privilégios de administrador.
 
@@ -25,4 +25,4 @@ Para conversar por voz, entre no canal `voz-geral` e permita o acesso ao microfo
 
 ## Atualizações e remoção
 
-Baixe cada versão nova pela página Releases e substitua a pasta extraída. Para desinstalar, feche o app e apague a pasta do SafeZone. Para remover preferências e credenciais TURN, apague também `%APPDATA%\SafeZone`.
+Use **Verificar atualizações no GitHub** dentro do app. No Windows, o botão **Atualizar agora** baixa e verifica o instalador e abre o assistente para substituir a versão instalada. Também é possível baixar uma versão manualmente pela página Releases e executar o instalador. Para desinstalar, use **Aplicativos instalados** do Windows. Para remover preferências e credenciais TURN, apague também `%APPDATA%\SafeZone`.
