@@ -3,10 +3,10 @@
 // e quem está transmitindo; o vídeo vai direto de quem transmite para quem escolheu assistir.
 // Tudo que chega pela rede é tratado como não confiável: formato, tamanho e frequência são conferidos.
 const ROOM_PREFIX = 'safezone-sala-';
-const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 32 símbolos: 8 letras = 40 bits
-const CODE_LEN = 8;
+const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 32 símbolos: 13 caracteres = 65 bits
+const CODE_LEN = 13;
 const MAX_MEMBERS = 12;
-const TEXT_CHANNELS = new Set(['geral', 'filmes']);
+const TEXT_CHANNELS = new Set(['geral']);
 const VOICE_CHANNEL = 'voz-geral';
 const QUALITIES = {
   '720': { width: 1280, height: 720, bitrate: 5_000_000 },
@@ -33,7 +33,7 @@ const ui = Object.fromEntries(['home', 'room', 'nameInput', 'codeInput', 'create
   'muteBtn', 'volume', 'fullBtn', 'shareModal', 'sourceGrid', 'appSelect', 'qualitySelect', 'cancelShare', 'confirmShare', 'toast',
   'tabs', 'waylandNote', 'audioLabel', 'audioHint', 'myNickname', 'chatPanel', 'chatMessages', 'chatForm', 'chatInput',
   'voiceChannelBtn', 'voiceChannelCount', 'voicePanel', 'voicePanelHint', 'voiceRoster', 'voiceToggleBtn', 'micBtn',
-  'audioSettingsBtn', 'audioSettingsRoomBtn', 'audioSettingsModal', 'audioSettingsForm', 'audioDriverLabel', 'microphoneSelect', 'speakerSelect', 'audioSettingsHint', 'loadAudioDevices', 'cancelAudioSettings',
+  'audioSettingsBtn', 'audioSettingsRoomBtn', 'audioSettingsModal', 'audioSettingsForm', 'audioDriverLabel', 'microphoneSelect', 'speakerSelect', 'audioSettingsHint', 'loadAudioDevices', 'cancelAudioSettings', 'voiceModeSelect', 'pushToTalkKey', 'echoCancellation', 'noiseSuppression', 'autoGainControl',
   'checkUpdatesBtn', 'updateStatus', 'updateModal', 'updateModalText', 'openReleaseBtn', 'closeUpdateModal'].map((id) => [id, $(id)]));
 
 const isId = (s) => typeof s === 'string' && /^[\w-]{1,64}$/.test(s);
@@ -50,10 +50,17 @@ let peer = null, myId = null, myName = '', roomCode = '', isOwner = false, owner
 let lastOwnerMsg = 0, heartbeat = null, connectTimer = null, wayland = false, isWindows = false;
 const members = new Map(); // só o dono: id -> { conn, name, streaming, lastSeen }
 let memberList = [];       // todos: [{ id, name, streaming, owner }]
-let activeChannel = 'watch', voiceRoster = [], voiceStream = null, voiceChannel = null, micMuted = false;
+let activeChannel = 'watch', voiceRoster = [], voiceStream = null, voiceChannel = null, micMuted = true;
 let selectedMicrophone = '', selectedSpeaker = '', latestUpdateAvailable = false;
+let voiceMode = 'open', pushToTalkCode = 'KeyV';
+let audioProcessing = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
 try { selectedMicrophone = localStorage.getItem('safezone-microphone') || ''; selectedSpeaker = localStorage.getItem('safezone-speaker') || ''; } catch {}
-const chatHistory = new Map([...TEXT_CHANNELS].map((channel) => [channel, []]));
+try {
+  const savedVoice = JSON.parse(localStorage.getItem('safezone-voice-settings') || '{}');
+  if (savedVoice.mode === 'open' || savedVoice.mode === 'ptt') voiceMode = savedVoice.mode;
+  if (typeof savedVoice.pushToTalkCode === 'string' && /^[A-Z][A-Za-z0-9]+$|^(Space|Backquote|BracketLeft|BracketRight|Comma|Period|Slash|Semicolon|Quote|Minus|Equal)$/.test(savedVoice.pushToTalkCode)) pushToTalkCode = savedVoice.pushToTalkCode;
+  for (const key of Object.keys(audioProcessing)) if (typeof savedVoice[key] === 'boolean') audioProcessing[key] = savedVoice[key];
+} catch {}
 const voiceCalls = new Map(), voiceAudio = new Map();
 let localStream = null, audioPipe = null;
 const outgoing = new Map();
@@ -86,6 +93,52 @@ function readName() {
   return name;
 }
 
+function saveVoiceSettings() {
+  try { localStorage.setItem('safezone-voice-settings', JSON.stringify({ mode: voiceMode, pushToTalkCode, ...audioProcessing })); } catch {}
+}
+
+function formatHotkey(code) {
+  if (code === 'Space') return 'Espaço';
+  if (code.startsWith('Key')) return code.slice(3);
+  if (code.startsWith('Digit')) return code.slice(5);
+  if (/^F\d{1,2}$/.test(code)) return code;
+  return code;
+}
+
+function setPushToTalk(pressed) {
+  if (voiceMode !== 'ptt' || !voiceStream || voiceChannel !== VOICE_CHANNEL) return;
+  micMuted = !pressed;
+  for (const track of voiceStream.getAudioTracks()) track.enabled = pressed;
+  renderVoiceChannel();
+}
+
+document.addEventListener('keydown', (event) => {
+  if (ui.pushToTalkKey.dataset.listening === 'true') {
+    event.preventDefault();
+    if (event.code === 'Escape') { ui.pushToTalkKey.dataset.listening = ''; ui.pushToTalkKey.textContent = formatHotkey(pushToTalkCode); return; }
+    if (!event.repeat && !event.ctrlKey && !event.altKey && !event.metaKey && (/^(Key[A-Z]|Digit[0-9]|F([1-9]|1[0-2])|Space)$/.test(event.code))) {
+      pushToTalkCode = event.code;
+      ui.pushToTalkKey.dataset.listening = '';
+      ui.pushToTalkKey.textContent = formatHotkey(pushToTalkCode);
+      saveVoiceSettings();
+    }
+    return;
+  }
+  if (event.code !== pushToTalkCode || event.repeat || event.ctrlKey || event.altKey || event.metaKey) return;
+  const target = event.target;
+  if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))) return;
+  if (voiceMode === 'ptt') { event.preventDefault(); setPushToTalk(true); }
+});
+document.addEventListener('keyup', (event) => { if (event.code === pushToTalkCode) setPushToTalk(false); });
+document.addEventListener('copy', (event) => event.preventDefault());
+document.addEventListener('cut', (event) => event.preventDefault());
+document.addEventListener('contextmenu', (event) => event.preventDefault());
+window.addEventListener('blur', () => {
+  setPushToTalk(false);
+  document.documentElement.classList.add('privacy-shield');
+});
+window.addEventListener('focus', () => document.documentElement.classList.remove('privacy-shield'));
+
 async function refreshAudioDevices(requestPermission) {
   try {
     if (requestPermission) {
@@ -115,6 +168,11 @@ async function refreshAudioDevices(requestPermission) {
 
 async function openAudioSettings() {
   ui.audioSettingsModal.hidden = false;
+  ui.voiceModeSelect.value = voiceMode;
+  ui.pushToTalkKey.textContent = formatHotkey(pushToTalkCode);
+  ui.echoCancellation.checked = audioProcessing.echoCancellation;
+  ui.noiseSuppression.checked = audioProcessing.noiseSuppression;
+  ui.autoGainControl.checked = audioProcessing.autoGainControl;
   ui.audioDriverLabel.textContent = 'Driver: detectando…';
   window.safezone.audioDriver().then((label) => { ui.audioDriverLabel.textContent = 'Driver detectado: ' + label; })
     .catch(() => { ui.audioDriverLabel.textContent = 'Driver de áudio padrão do sistema'; });
@@ -132,7 +190,14 @@ async function saveAudioSettings(event) {
   if (wasInVoice) leaveVoice();
   selectedMicrophone = ui.microphoneSelect.value;
   selectedSpeaker = ui.speakerSelect.value;
+  voiceMode = ui.voiceModeSelect.value === 'ptt' ? 'ptt' : 'open';
+  audioProcessing = {
+    echoCancellation: ui.echoCancellation.checked,
+    noiseSuppression: ui.noiseSuppression.checked,
+    autoGainControl: ui.autoGainControl.checked,
+  };
   try { localStorage.setItem('safezone-microphone', selectedMicrophone); localStorage.setItem('safezone-speaker', selectedSpeaker); } catch {}
+  saveVoiceSettings();
   try {
     await applySpeaker(selectedSpeaker);
     ui.audioSettingsModal.hidden = true;
@@ -176,6 +241,10 @@ ui.audioSettingsRoomBtn.onclick = openAudioSettings;
 ui.loadAudioDevices.onclick = () => refreshAudioDevices(true);
 ui.cancelAudioSettings.onclick = () => { ui.audioSettingsModal.hidden = true; };
 ui.audioSettingsForm.onsubmit = saveAudioSettings;
+ui.pushToTalkKey.onclick = () => {
+  ui.pushToTalkKey.textContent = 'Pressione uma tecla…';
+  ui.pushToTalkKey.dataset.listening = 'true';
+};
 ui.checkUpdatesBtn.onclick = () => latestUpdateAvailable
   ? window.safezone.openReleasePage().catch(() => toast('Não consegui abrir o GitHub.'))
   : checkForUpdates();
@@ -193,7 +262,7 @@ ui.joinBtn.onclick = () => {
   const name = readName();
   if (!name) return;
   const code = ui.codeInput.value.trim().toUpperCase();
-  if (!new RegExp('^[' + CODE_CHARS + ']{' + CODE_LEN + '}$').test(code)) return showHomeError('O código da sala tem ' + CODE_LEN + ' letras e números.');
+  if (!new RegExp('^[' + CODE_CHARS + ']{' + CODE_LEN + '}$').test(code)) return showHomeError('O convite tem ' + CODE_LEN + ' letras e números. Atualize o SafeZone de quem criou a sala para usar convites novos.');
   myName = name; showHomeError(''); setHomeBusy(true); joinRoom(code);
 };
 ui.codeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') ui.joinBtn.click(); });
@@ -353,7 +422,6 @@ function ownerHandle(from, msg, conn) {
       if (members.size >= MAX_MEMBERS) { try { conn.send({ t: 'full' }); } catch {} setTimeout(() => conn.close(), 300); return; }
       members.set(from, { conn, name: cleanName(msg.name), streaming: false, voiceChannel: null, lastSeen: Date.now() });
       broadcastMembers();
-      deliver(from, { t: 'chat-history', channels: Object.fromEntries(chatHistory) });
       break;
     case 'streaming':
       if (m) { m.streaming = msg.on === true; broadcastMembers(); }
@@ -363,9 +431,6 @@ function ownerHandle(from, msg, conn) {
       const text = msg.text.replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 500);
       if (!text) return;
       const item = { name: m.name, text, at: Date.now() };
-      const history = chatHistory.get(msg.channel);
-      history.push(item);
-      if (history.length > 100) history.shift();
       for (const id of members.keys()) deliver(id, { t: 'chat-message', channel: msg.channel, message: item });
       break;
     }
@@ -429,21 +494,9 @@ function memberHandle(msg) {
       renderVoiceChannel();
       showStage();
       break;
-    case 'chat-history':
-      for (const channel of TEXT_CHANNELS) {
-        const list = msg.channels && Array.isArray(msg.channels[channel]) ? msg.channels[channel].slice(-100) : [];
-        chatHistory.set(channel, list.filter((item) => item && typeof item.name === 'string' && typeof item.text === 'string').map((item) => ({ name: cleanName(item.name), text: item.text.slice(0, 500), at: safeTime(item.at) })));
-      }
-      renderChat();
-      break;
     case 'chat-message':
       if (!TEXT_CHANNELS.has(msg.channel) || !msg.message || typeof msg.message.text !== 'string' || typeof msg.message.name !== 'string') return;
-      {
-        const list = chatHistory.get(msg.channel);
-        list.push({ name: cleanName(msg.message.name), text: msg.message.text.slice(0, 500), at: safeTime(msg.message.at) });
-        if (list.length > 100) list.shift();
-        if (activeChannel === msg.channel) renderChat();
-      }
+      if (activeChannel === msg.channel) appendChatMessage({ name: cleanName(msg.message.name), text: msg.message.text.slice(0, 500), at: safeTime(msg.message.at) });
       break;
     case 'voice-roster':
       if (msg.channel !== VOICE_CHANNEL || !Array.isArray(msg.users)) return;
@@ -490,6 +543,7 @@ function badge(text) { const b = document.createElement('span'); b.className = '
 
 function selectChannel(channel) {
   activeChannel = channel;
+  if (channel !== 'geral') ui.chatMessages.replaceChildren();
   document.querySelectorAll('.channel-select').forEach((button) => button.classList.toggle('active', button.dataset.channel === channel));
   ui.voiceChannelBtn.classList.toggle('active', channel === VOICE_CHANNEL);
   const heading = document.querySelector('.room-heading strong');
@@ -504,7 +558,7 @@ function selectChannel(channel) {
     ui.chatPanel.hidden = false;
     ui.voicePanel.hidden = true;
     ui.chatInput.placeholder = 'Mensagem em #' + channel;
-    renderChat();
+    ui.chatMessages.replaceChildren();
   } else {
     heading.textContent = VOICE_CHANNEL;
     ui.video.closest('.viewer').hidden = true;
@@ -514,20 +568,19 @@ function selectChannel(channel) {
   }
 }
 
-function renderChat() {
+function appendChatMessage(item) {
   if (!ui.chatMessages) return;
-  const list = chatHistory.get(activeChannel) || [];
-  ui.chatMessages.replaceChildren(...list.map((item) => {
-    const row = document.createElement('article'); row.className = 'chat-message';
-    const avatar = document.createElement('span'); avatar.className = 'chat-avatar'; avatar.textContent = item.name.slice(0, 1).toUpperCase();
-    const body = document.createElement('div');
-    const head = document.createElement('div'); head.className = 'chat-message-head';
-    const name = document.createElement('strong'); name.textContent = item.name;
-    const date = new Date(item.at);
-    const time = document.createElement('time'); time.dateTime = date.toISOString(); time.textContent = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const text = document.createElement('p'); text.className = 'chat-message-text'; text.textContent = item.text;
-    head.append(name, time); body.append(head, text); row.append(avatar, body); return row;
-  }));
+  const row = document.createElement('article'); row.className = 'chat-message';
+  const avatar = document.createElement('span'); avatar.className = 'chat-avatar'; avatar.textContent = item.name.slice(0, 1).toUpperCase();
+  const body = document.createElement('div');
+  const head = document.createElement('div'); head.className = 'chat-message-head';
+  const name = document.createElement('strong'); name.textContent = item.name;
+  const date = new Date(item.at);
+  const time = document.createElement('time'); time.dateTime = date.toISOString(); time.textContent = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const text = document.createElement('p'); text.className = 'chat-message-text'; text.textContent = item.text;
+  head.append(name, time); body.append(head, text); row.append(avatar, body);
+  ui.chatMessages.append(row);
+  while (ui.chatMessages.childElementCount > 100) ui.chatMessages.firstElementChild.remove();
   ui.chatMessages.scrollTop = ui.chatMessages.scrollHeight;
 }
 
@@ -543,21 +596,24 @@ function renderVoiceChannel() {
   const joined = voiceChannel === VOICE_CHANNEL;
   ui.voiceToggleBtn.textContent = joined ? 'Sair do canal de voz' : 'Entrar no canal de voz';
   ui.voiceToggleBtn.classList.toggle('danger', joined);
-  ui.voicePanelHint.textContent = joined ? (micMuted ? 'Você está conectado com o microfone desligado.' : 'Seu microfone está conectado ao canal.') : 'Entre no canal para conversar com quem está na sala.';
+  ui.voicePanelHint.textContent = joined ? (voiceMode === 'ptt'
+    ? (micMuted ? `Push to talk ativo · segure ${formatHotkey(pushToTalkCode)} para falar.` : 'Microfone transmitindo enquanto a tecla está pressionada.')
+    : (micMuted ? 'Você está conectado com o microfone desligado.' : 'Seu microfone está conectado ao canal.')) : 'Entre no canal para conversar com quem está na sala.';
   ui.micBtn.hidden = !joined;
-  ui.micBtn.textContent = micMuted ? '🔇' : '🎙';
-  ui.micBtn.title = micMuted ? 'Ativar microfone' : 'Silenciar microfone';
+  ui.micBtn.textContent = voiceMode === 'ptt' ? (micMuted ? '🎙' : '🔴') : (micMuted ? '🔇' : '🎙');
+  ui.micBtn.title = voiceMode === 'ptt' ? `Segure para falar · ${formatHotkey(pushToTalkCode)}` : (micMuted ? 'Ativar microfone' : 'Silenciar microfone');
   ui.micBtn.setAttribute('aria-label', ui.micBtn.title);
 }
 
 async function enterVoice() {
   if (voiceChannel === VOICE_CHANNEL) { leaveVoice(); return; }
   try {
-    const audio = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
+    const audio = { ...audioProcessing };
     if (selectedMicrophone) audio.deviceId = { exact: selectedMicrophone };
     voiceStream = await navigator.mediaDevices.getUserMedia({ audio, video: false });
     voiceChannel = VOICE_CHANNEL;
-    micMuted = false;
+    micMuted = true;
+    for (const track of voiceStream.getAudioTracks()) track.enabled = !micMuted;
     sendToOwner({ t: 'voice-join', channel: VOICE_CHANNEL });
   } catch (err) {
     if (err && err.name === 'NotAllowedError') toast('Permita o acesso ao microfone para entrar no canal de voz.');
@@ -573,7 +629,7 @@ function leaveVoice() {
   voiceRoster = [];
   for (const id of [...voiceCalls.keys()]) closeVoiceCall(id);
   if (voiceStream) { voiceStream.getTracks().forEach((track) => track.stop()); voiceStream = null; }
-  micMuted = false;
+  micMuted = true;
   renderVoiceChannel();
 }
 
@@ -619,10 +675,14 @@ document.querySelectorAll('.channel-select').forEach((button) => { button.onclic
 ui.voiceChannelBtn.onclick = () => { selectChannel(VOICE_CHANNEL); if (voiceChannel !== VOICE_CHANNEL) enterVoice(); };
 ui.voiceToggleBtn.onclick = enterVoice;
 ui.micBtn.onclick = () => {
+  if (voiceMode === 'ptt') return;
   micMuted = !micMuted;
   if (voiceStream) for (const track of voiceStream.getAudioTracks()) track.enabled = !micMuted;
   renderVoiceChannel();
 };
+ui.micBtn.onpointerdown = (event) => { if (voiceMode === 'ptt') { event.preventDefault(); ui.micBtn.setPointerCapture(event.pointerId); setPushToTalk(true); } };
+ui.micBtn.onpointerup = () => setPushToTalk(false);
+ui.micBtn.onpointercancel = () => setPushToTalk(false);
 ui.chatForm.onsubmit = (event) => {
   event.preventDefault();
   const text = ui.chatInput.value.trim().slice(0, 500);

@@ -1,4 +1,4 @@
-# SafeZone 1.3.0 (Linux e Windows)
+# SafeZone 1.3.1 (Linux e Windows)
 
 Assista e converse com os amigos: crie uma sala, compartilhe o código e use os canais de texto e voz. No Linux, você escolhe o programa cujo áudio será enviado; no Windows, pode enviar o áudio do sistema inteiro ou nenhum áudio.
 
@@ -6,12 +6,12 @@ O SafeZone é multiplataforma, com superfície de ataque reduzida e foco em ter 
 
 ## Downloads
 
-- [Baixar para Linux x64 (.tar.gz)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.0-linux-x64.tar.gz)
-- [SHA-256 do pacote Linux](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.0-linux-x64.tar.gz.sha256)
-- [Instalador Windows 10/11 x64 (.exe)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.0-windows-x64-setup.exe)
-- [SHA-256 do instalador Windows](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.0-windows-x64-setup.exe.sha256)
-- [Versão portátil para Windows (.zip)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.0-windows-x64.zip)
-- [SHA-256 do pacote portátil](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.0-windows-x64.zip.sha256)
+- [Baixar para Linux x64 (.tar.gz)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.1-linux-x64.tar.gz)
+- [SHA-256 do pacote Linux](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.1-linux-x64.tar.gz.sha256)
+- [Instalador Windows 10/11 x64 (.exe)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.1-windows-x64-setup.exe)
+- [SHA-256 do instalador Windows](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.1-windows-x64-setup.exe.sha256)
+- [Versão portátil para Windows (.zip)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.1-windows-x64.zip)
+- [SHA-256 do pacote portátil](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.1-windows-x64.zip.sha256)
 - [Todas as versões e notas de lançamento](https://github.com/gluckrickz-oss/SafeZone/releases)
 
 ## Requisitos Linux
@@ -22,11 +22,11 @@ O SafeZone é multiplataforma, com superfície de ataque reduzida e foco em ter 
 
 ## Instalar (pacote pronto)
 
-Baixe o [pacote Linux x64](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.0-linux-x64.tar.gz) e o [checksum SHA-256](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.0-linux-x64.tar.gz.sha256):
+Baixe o [pacote Linux x64](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.1-linux-x64.tar.gz) e o [checksum SHA-256](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.1-linux-x64.tar.gz.sha256):
 
 ```bash
-tar xzf safezone-1.3.0-linux-x64.tar.gz
-cd safezone-1.3.0-linux-x64
+tar xzf safezone-1.3.1-linux-x64.tar.gz
+cd safezone-1.3.1-linux-x64
 ./install.sh
 safezone
 ```
@@ -35,7 +35,7 @@ O `install.sh` instala só para o seu usuário em `~/.local`. Ele só pede `sudo
 
 ## Instalar no Windows
 
-Baixe o [instalador SafeZone 1.3.0](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.0-windows-x64-setup.exe), confira o [SHA-256](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.0-windows-x64-setup.exe.sha256) e execute. Ele instala só para seu usuário, sem pedir administrador. A versão não é assinada e o Windows pode exibir o aviso do SmartScreen. Se preferir, use o [ZIP portátil](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.0-windows-x64.zip).
+Baixe o [instalador SafeZone 1.3.1](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.1-windows-x64-setup.exe), confira o [SHA-256](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.1-windows-x64-setup.exe.sha256) e execute. Ele instala só para seu usuário, sem pedir administrador. A versão não é assinada e o Windows pode exibir o aviso do SmartScreen. Se preferir, use o [ZIP portátil](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.1-windows-x64.zip).
 
 ## Rodar a partir do código
 
@@ -53,8 +53,8 @@ npm run audit     # npm audit
 ## Como usar
 
 1. Escolha seu apelido antes de criar uma sala ou entrar com um código de convite.
-2. Use `#geral` e `#filmes` para conversar por texto. As mensagens ficam na memória do computador que criou a sala.
-3. Em **Configurar áudio**, escolha o microfone e a saída de áudio. O driver compatível é detectado pelo sistema. Entre em `voz-geral` e use o botão 🎙 para silenciar e ativar sua voz.
+2. Use `#geral` para conversar por texto. A sala retransmite mensagens ao vivo e não mantém histórico para novos participantes; ao trocar de canal ou sair, o texto exibido é apagado.
+3. Em **Configurar áudio**, escolha o microfone, a saída, o modo de transmissão e os filtros de voz. Ao entrar no canal de voz, o microfone começa silenciado. No modo aberto, clique no botão para ativá-lo; no push to talk, segure `V` por padrão (ou personalize a tecla nas configurações) para falar.
 4. Para assistir, clique em **Compartilhar tela**, escolha a janela e o áudio. Para ver a transmissão, selecione quem está transmitindo.
 
 Use **Verificar atualizações no GitHub** na tela inicial. Se houver uma versão nova, abra a release oficial. No Windows, baixe e execute o instalador. No Linux, extraia o pacote e execute `./install.sh`. Feche o SafeZone antes de atualizar.
@@ -76,7 +76,8 @@ No Windows, a captura de áudio oferece o som do sistema inteiro (todas as aplic
 ## Segurança
 
 - O app usa sandbox, CSP restrita e validação das mensagens recebidas.
-- O código da sala tem 8 caracteres; as salas aceitam até 12 pessoas.
+- A janela bloqueia seleção/cópia de texto e impressão. No Windows, usa a proteção do sistema contra captura da janela; no Linux, cobre a tela quando o SafeZone perde o foco, como proteção de melhor esforço.
+- O convite da sala tem 13 caracteres aleatórios; as salas aceitam até 12 pessoas. Salas e convites de versões anteriores com 8 caracteres não são compatíveis; todos precisam atualizar para a mesma versão.
 - O token TURN nunca é incluído no repositório nem no pacote.
 - A janela só acessa o servidor de sinalização PeerJS e recursos locais do app.
 
@@ -92,7 +93,11 @@ No Linux, rode `chmod 600 ~/.config/SafeZone/turn.json`. No Windows, mantenha a 
 
 ## Privacidade
 
-O SafeZone não tem telemetria. O apelido, microfone, saída de áudio e qualidade preferida ficam no armazenamento local do perfil Electron; o apelido é compartilhado com a sala enquanto você está conectado. Mensagens de texto passam pelo computador que criou a sala e ficam em memória até ela fechar. Voz, vídeo e áudio usam WebRTC com criptografia em trânsito; a voz é enviada às pessoas no canal de voz. Se TURN estiver configurado, a mídia pode passar pelo relay. O PeerJS (`0.peerjs.com`) é usado para sinalização; STUN públicos podem observar endereços IP. O código da sala é a única barreira de entrada: quem souber o código pode tentar entrar. Veja [SECURITY.md](SECURITY.md) para o modelo de ameaça e instruções para apagar as configurações locais.
+O SafeZone não tem telemetria. O apelido, microfone, saída de áudio e qualidade preferida ficam no armazenamento local do perfil Electron; o apelido é compartilhado com a sala enquanto você está conectado. Mensagens de texto são retransmitidas ao vivo pelo computador que criou a sala, sem arquivo ou histórico enviado a quem entrar depois. O texto continua visível temporariamente na tela dos participantes ativos e não é criptografado de ponta a ponta: quem está na sala pode ler e registrar as mensagens por outros meios. Voz, vídeo e áudio usam WebRTC com criptografia em trânsito; a voz é enviada às pessoas no canal de voz. Se TURN estiver configurado, a mídia pode passar pelo relay. O PeerJS (`0.peerjs.com`) é usado para sinalização; STUN públicos podem observar endereços IP. O código da sala é a única barreira de entrada: quem souber o código pode tentar entrar. Veja [SECURITY.md](SECURITY.md) para o modelo de ameaça e instruções para apagar as configurações locais.
+
+O bloqueio de captura é uma barreira de privacidade, não uma garantia: no Linux, ferramentas que capturam a tela sem tirar o foco ainda podem registrar a janela; câmera externa e software privilegiado também podem gravar o conteúdo.
+
+Nas configurações de áudio, escolha microfone aberto ou push to talk, personalize a tecla de fala e ajuste cancelamento de eco, redução de ruído e ganho automático. Push to talk transmite apenas enquanto a tecla escolhida (V por padrão) ou o botão de microfone estiver pressionado. As preferências ficam neste computador.
 
 ## Limitações conhecidas
 
