@@ -95,6 +95,13 @@ function createWindow() {
       backgroundThrottling: false, devTools: !app.isPackaged,
     },
   });
+  // Windows excludes this window from standard desktop capture APIs.
+  if (process.platform === 'win32') win.setContentProtection(true);
+  win.webContents.on('before-input-event', (event, input) => {
+    if (input.type !== 'keyDown') return;
+    const key = String(input.key || '').toLowerCase();
+    if ((input.control && key === 'p') || ['printscreen', 'print', 'snapshot'].includes(key)) event.preventDefault();
+  });
   win.loadFile(path.join(__dirname, 'src', 'index.html'));
   win.on('page-title-updated', (e) => e.preventDefault());
   win.on('closed', () => { stopAudio(); win = null; });
