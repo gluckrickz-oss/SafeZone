@@ -6,6 +6,8 @@ Esta é a versão multiplataforma do Isekai, com superfície de ataque reduzida 
 
 ## Downloads
 
+- [Baixar para Linux x64 (.tar.gz)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.1.0-linux-x64.tar.gz)
+- [SHA-256 do pacote Linux](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.1.0-linux-x64.tar.gz.sha256)
 - [Baixar para Windows 10/11 x64 (ZIP)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.1.0-windows-x64.zip)
 - [SHA-256 do pacote Windows](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.1.0-windows-x64.zip.sha256)
 - [Todas as versões e notas de lançamento](https://github.com/gluckrickz-oss/SafeZone/releases)
@@ -17,6 +19,8 @@ Esta é a versão multiplataforma do Isekai, com superfície de ataque reduzida 
 - Para compartilhar a tela no Wayland: PipeWire + `xdg-desktop-portal` do seu ambiente (GNOME, KDE...)
 
 ## Instalar (pacote pronto)
+
+Baixe o [pacote Linux x64](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.1.0-linux-x64.tar.gz) e o [checksum SHA-256](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.1.0-linux-x64.tar.gz.sha256):
 
 ```bash
 tar xzf safezone-1.1.0-linux-x64.tar.gz

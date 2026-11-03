@@ -2,6 +2,7 @@
 
 ## 1.1.0
 - Adicionada versão portátil para Windows 10/11 x64, publicada como ZIP com checksum SHA-256.
+- Pacotes Linux x64 e Windows x64 publicados na mesma release, acompanhados de checksum SHA-256; o pacote Linux inclui SBOM CycloneDX.
 - Captura de áudio no Windows usa loopback do sistema inteiro; é possível transmitir sem áudio. O áudio não é isolado por programa nessa plataforma.
 - Adicionada publicação automatizada de release Windows a partir do versionamento no `package.json`.
 - Documentadas instalação, privacidade e limitações específicas de áudio no Windows.
