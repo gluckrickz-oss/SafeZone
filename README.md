@@ -54,7 +54,7 @@ npm run audit     # npm audit
 
 1. Escolha seu apelido antes de criar uma sala ou entrar com um código de convite.
 2. Use `#geral` e `#filmes` para conversar por texto. As mensagens ficam na memória do computador que criou a sala.
-3. Em **Configurar áudio**, escolha o microfone e a saída de áudio. O driver compatível é detectado pelo sistema. Entre em `voz-geral` e use o botão 🎙 para silenciar e ativar sua voz.
+3. Em **Configurar áudio**, escolha o microfone, a saída, o modo de transmissão e os filtros de voz. Push to talk usa `V` por padrão; personalize a tecla nas configurações. No canal `voz-geral`, segure a tecla ou o botão do microfone para falar.
 4. Para assistir, clique em **Compartilhar tela**, escolha a janela e o áudio. Para ver a transmissão, selecione quem está transmitindo.
 
 Use **Verificar atualizações no GitHub** na tela inicial. Se houver uma versão nova, abra a release oficial. No Windows, baixe e execute o instalador. No Linux, extraia o pacote e execute `./install.sh`. Feche o SafeZone antes de atualizar.
