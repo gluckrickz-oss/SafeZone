@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.4
+- Corrigida abertura no Windows: removida a exclusão nativa da janela principal via SetWindowDisplayAffinity, que podia deixá-la invisível após iniciar ou reexibir.
+
 ## 1.3.3
 - No Windows, a janela principal agora aparece imediatamente ao iniciar, em vez de esperar pelo evento de renderização; falhas de carregamento também mostram e focam a janela com o diagnóstico.
 
