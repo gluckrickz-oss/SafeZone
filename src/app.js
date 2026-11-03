@@ -6,7 +6,7 @@ const ROOM_PREFIX = 'safezone-sala-';
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 32 símbolos: 13 caracteres = 65 bits
 const CODE_LEN = 13;
 const MAX_MEMBERS = 12;
-const TEXT_CHANNELS = new Set(['geral', 'filmes']);
+const TEXT_CHANNELS = new Set(['geral']);
 const VOICE_CHANNEL = 'voz-geral';
 const QUALITIES = {
   '720': { width: 1280, height: 720, bitrate: 5_000_000 },
@@ -50,7 +50,7 @@ let peer = null, myId = null, myName = '', roomCode = '', isOwner = false, owner
 let lastOwnerMsg = 0, heartbeat = null, connectTimer = null, wayland = false, isWindows = false;
 const members = new Map(); // só o dono: id -> { conn, name, streaming, lastSeen }
 let memberList = [];       // todos: [{ id, name, streaming, owner }]
-let activeChannel = 'watch', voiceRoster = [], voiceStream = null, voiceChannel = null, micMuted = false;
+let activeChannel = 'watch', voiceRoster = [], voiceStream = null, voiceChannel = null, micMuted = true;
 let selectedMicrophone = '', selectedSpeaker = '', latestUpdateAvailable = false;
 let voiceMode = 'open', pushToTalkCode = 'KeyV';
 let audioProcessing = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
@@ -61,7 +61,6 @@ try {
   if (typeof savedVoice.pushToTalkCode === 'string' && /^[A-Z][A-Za-z0-9]+$|^(Space|Backquote|BracketLeft|BracketRight|Comma|Period|Slash|Semicolon|Quote|Minus|Equal)$/.test(savedVoice.pushToTalkCode)) pushToTalkCode = savedVoice.pushToTalkCode;
   for (const key of Object.keys(audioProcessing)) if (typeof savedVoice[key] === 'boolean') audioProcessing[key] = savedVoice[key];
 } catch {}
-const chatHistory = new Map([...TEXT_CHANNELS].map((channel) => [channel, []]));
 const voiceCalls = new Map(), voiceAudio = new Map();
 let localStream = null, audioPipe = null;
 const outgoing = new Map();
@@ -416,7 +415,6 @@ function ownerHandle(from, msg, conn) {
       if (members.size >= MAX_MEMBERS) { try { conn.send({ t: 'full' }); } catch {} setTimeout(() => conn.close(), 300); return; }
       members.set(from, { conn, name: cleanName(msg.name), streaming: false, voiceChannel: null, lastSeen: Date.now() });
       broadcastMembers();
-      deliver(from, { t: 'chat-history', channels: Object.fromEntries(chatHistory) });
       break;
     case 'streaming':
       if (m) { m.streaming = msg.on === true; broadcastMembers(); }
@@ -426,9 +424,6 @@ function ownerHandle(from, msg, conn) {
       const text = msg.text.replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 500);
       if (!text) return;
       const item = { name: m.name, text, at: Date.now() };
-      const history = chatHistory.get(msg.channel);
-      history.push(item);
-      if (history.length > 100) history.shift();
       for (const id of members.keys()) deliver(id, { t: 'chat-message', channel: msg.channel, message: item });
       break;
     }
@@ -492,21 +487,9 @@ function memberHandle(msg) {
       renderVoiceChannel();
       showStage();
       break;
-    case 'chat-history':
-      for (const channel of TEXT_CHANNELS) {
-        const list = msg.channels && Array.isArray(msg.channels[channel]) ? msg.channels[channel].slice(-100) : [];
-        chatHistory.set(channel, list.filter((item) => item && typeof item.name === 'string' && typeof item.text === 'string').map((item) => ({ name: cleanName(item.name), text: item.text.slice(0, 500), at: safeTime(item.at) })));
-      }
-      renderChat();
-      break;
     case 'chat-message':
       if (!TEXT_CHANNELS.has(msg.channel) || !msg.message || typeof msg.message.text !== 'string' || typeof msg.message.name !== 'string') return;
-      {
-        const list = chatHistory.get(msg.channel);
-        list.push({ name: cleanName(msg.message.name), text: msg.message.text.slice(0, 500), at: safeTime(msg.message.at) });
-        if (list.length > 100) list.shift();
-        if (activeChannel === msg.channel) renderChat();
-      }
+      if (activeChannel === msg.channel) appendChatMessage({ name: cleanName(msg.message.name), text: msg.message.text.slice(0, 500), at: safeTime(msg.message.at) });
       break;
     case 'voice-roster':
       if (msg.channel !== VOICE_CHANNEL || !Array.isArray(msg.users)) return;
@@ -553,6 +536,7 @@ function badge(text) { const b = document.createElement('span'); b.className = '
 
 function selectChannel(channel) {
   activeChannel = channel;
+  if (channel !== 'geral') ui.chatMessages.replaceChildren();
   document.querySelectorAll('.channel-select').forEach((button) => button.classList.toggle('active', button.dataset.channel === channel));
   ui.voiceChannelBtn.classList.toggle('active', channel === VOICE_CHANNEL);
   const heading = document.querySelector('.room-heading strong');
@@ -567,7 +551,7 @@ function selectChannel(channel) {
     ui.chatPanel.hidden = false;
     ui.voicePanel.hidden = true;
     ui.chatInput.placeholder = 'Mensagem em #' + channel;
-    renderChat();
+    ui.chatMessages.replaceChildren();
   } else {
     heading.textContent = VOICE_CHANNEL;
     ui.video.closest('.viewer').hidden = true;
@@ -577,20 +561,19 @@ function selectChannel(channel) {
   }
 }
 
-function renderChat() {
+function appendChatMessage(item) {
   if (!ui.chatMessages) return;
-  const list = chatHistory.get(activeChannel) || [];
-  ui.chatMessages.replaceChildren(...list.map((item) => {
-    const row = document.createElement('article'); row.className = 'chat-message';
-    const avatar = document.createElement('span'); avatar.className = 'chat-avatar'; avatar.textContent = item.name.slice(0, 1).toUpperCase();
-    const body = document.createElement('div');
-    const head = document.createElement('div'); head.className = 'chat-message-head';
-    const name = document.createElement('strong'); name.textContent = item.name;
-    const date = new Date(item.at);
-    const time = document.createElement('time'); time.dateTime = date.toISOString(); time.textContent = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const text = document.createElement('p'); text.className = 'chat-message-text'; text.textContent = item.text;
-    head.append(name, time); body.append(head, text); row.append(avatar, body); return row;
-  }));
+  const row = document.createElement('article'); row.className = 'chat-message';
+  const avatar = document.createElement('span'); avatar.className = 'chat-avatar'; avatar.textContent = item.name.slice(0, 1).toUpperCase();
+  const body = document.createElement('div');
+  const head = document.createElement('div'); head.className = 'chat-message-head';
+  const name = document.createElement('strong'); name.textContent = item.name;
+  const date = new Date(item.at);
+  const time = document.createElement('time'); time.dateTime = date.toISOString(); time.textContent = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const text = document.createElement('p'); text.className = 'chat-message-text'; text.textContent = item.text;
+  head.append(name, time); body.append(head, text); row.append(avatar, body);
+  ui.chatMessages.append(row);
+  while (ui.chatMessages.childElementCount > 100) ui.chatMessages.firstElementChild.remove();
   ui.chatMessages.scrollTop = ui.chatMessages.scrollHeight;
 }
 
@@ -622,7 +605,7 @@ async function enterVoice() {
     if (selectedMicrophone) audio.deviceId = { exact: selectedMicrophone };
     voiceStream = await navigator.mediaDevices.getUserMedia({ audio, video: false });
     voiceChannel = VOICE_CHANNEL;
-    micMuted = voiceMode === 'ptt';
+    micMuted = true;
     for (const track of voiceStream.getAudioTracks()) track.enabled = !micMuted;
     sendToOwner({ t: 'voice-join', channel: VOICE_CHANNEL });
   } catch (err) {
@@ -639,7 +622,7 @@ function leaveVoice() {
   voiceRoster = [];
   for (const id of [...voiceCalls.keys()]) closeVoiceCall(id);
   if (voiceStream) { voiceStream.getTracks().forEach((track) => track.stop()); voiceStream = null; }
-  micMuted = false;
+  micMuted = true;
   renderVoiceChannel();
 }
 
