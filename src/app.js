@@ -27,7 +27,7 @@ async function peerOptions() {
 
 const $ = (id) => document.getElementById(id);
 const ui = Object.fromEntries(['home', 'room', 'nameInput', 'codeInput', 'createBtn', 'joinBtn', 'homeError', 'roomCode', 'peopleCount',
-  'shareBtn', 'shareStatus', 'leaveBtn', 'memberList', 'watchTitle', 'stats', 'stage', 'video', 'stageMsg', 'stageEmpty', 'controls',
+  'shareBtn', 'shareStatus', 'shareIdle', 'leaveBtn', 'memberList', 'memberCountBadge', 'watchTitle', 'stats', 'stage', 'video', 'stageMsg', 'stageEmpty', 'controls',
   'muteBtn', 'volume', 'fullBtn', 'shareModal', 'sourceGrid', 'appSelect', 'qualitySelect', 'cancelShare', 'confirmShare', 'toast',
   'tabs', 'waylandNote'].map((id) => [id, $(id)]));
 
@@ -292,6 +292,7 @@ function memberHandle(msg) {
 
 function renderMembers() {
   ui.peopleCount.textContent = memberList.length === 1 ? '1 pessoa na sala' : memberList.length + ' pessoas na sala';
+  ui.memberCountBadge.textContent = String(memberList.length);
   ui.memberList.replaceChildren(...memberList.map((m) => {
     const li = document.createElement('li');
     li.className = 'member' + (m.streaming ? ' live' : '') + (m.id === watching ? ' selected' : '');
@@ -589,6 +590,7 @@ function updateShareUi() {
   ui.shareBtn.classList.toggle('danger', live);
   ui.shareStatus.hidden = !live;
   ui.shareStatus.textContent = outgoing.size === 0 ? 'Ao vivo' : 'Ao vivo · ' + outgoing.size + ' assistindo';
+  ui.shareIdle.hidden = live;
 }
 
 function callViewer(viewerId) {

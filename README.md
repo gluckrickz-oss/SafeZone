@@ -24,7 +24,7 @@ O `install.sh` instala só para o seu usuário em `~/.local`. Ele só pede `sudo
 ## Rodar a partir do código
 
 ```bash
-npm ci            # ou "npm install" na primeira vez, para gerar o package-lock.json
+npm ci            # instala as versões exatas registradas no package-lock.json
 npm test          # testes do leitor de áudio
 npm start         # abre o app (precisa do chrome-sandbox configurado)
 npm run start:dev # abre sem sandbox: só para desenvolvimento
@@ -84,7 +84,7 @@ e rode `chmod 600 ~/.config/SafeZone/turn.json`. Arquivo legível por outros usu
 
 ## Privacidade
 
-O SafeZone não tem telemetria. O vídeo e o som vão direto entre os PCs (WebRTC). O servidor público do PeerJS (`0.peerjs.com`) e os STUN do Google e da Cloudflare veem endereços IP durante a conexão. O código da sala é o único "segredo": quem souber o código pode entrar.
+O SafeZone não tem telemetria. O nome e a qualidade preferida ficam no armazenamento local do perfil Electron; o nome é compartilhado com a sala enquanto você está conectado. O PeerJS (`0.peerjs.com`) é usado para sinalização; STUN públicos podem observar endereços IP. O vídeo e o áudio usam WebRTC com criptografia em trânsito. Se TURN estiver configurado, a mídia pode passar pelo relay. O código da sala é a única barreira de entrada: quem souber o código pode tentar entrar. Veja [SECURITY.md](SECURITY.md) para o modelo de ameaça e instruções para apagar as configurações locais.
 
 ## Limitações conhecidas
 

@@ -8,60 +8,86 @@
 </head>
 <body>
   <section id="home" class="home">
-    <div class="home-card card">
-      <h1 class="logo">SafeZone</h1>
-      <p class="tagline">Um filme, uma série, a galera junta — e o som só do player.</p>
-      <label class="field">
-        <span>Seu nome</span>
-        <input id="nameInput" class="input" maxlength="24" placeholder="Como o pessoal vai te ver" autocomplete="off">
-      </label>
-      <button id="createBtn" class="btn primary wide">Criar sala</button>
-      <div class="divider">ou entre numa sala</div>
-      <div class="join-row">
-        <input id="codeInput" class="input" maxlength="8" placeholder="CÓDIGO" autocomplete="off" spellcheck="false">
-        <button id="joinBtn" class="btn">Entrar</button>
+    <div class="home-shell">
+      <div class="home-brand" aria-hidden="true"><span class="brand-mark">S</span><span>SafeZone</span></div>
+      <div class="home-card card">
+        <p class="eyebrow">SUA SALA, SUA GALERA</p>
+        <h1 class="logo">Assista junto.</h1>
+        <p class="tagline">Compartilhe a janela e o som do player com quem está na sala.</p>
+        <label class="field">
+          <span>Seu nome</span>
+          <input id="nameInput" class="input" maxlength="24" placeholder="Como o pessoal vai te ver" autocomplete="off">
+        </label>
+        <button id="createBtn" class="btn primary wide">Criar uma sala</button>
+        <div class="divider">ou entre com um convite</div>
+        <div class="join-row">
+          <input id="codeInput" class="input" maxlength="8" placeholder="CÓDIGO" autocomplete="off" spellcheck="false">
+          <button id="joinBtn" class="btn">Entrar</button>
+        </div>
+        <p id="homeError" class="error" hidden></p>
       </div>
-      <p id="homeError" class="error" hidden></p>
+      <p class="home-footnote">Sem cadastro · Código de convite privado · Até 12 pessoas</p>
     </div>
   </section>
 
   <section id="room" class="room" hidden>
-    <header class="topbar card">
-      <div class="brand">
-        <strong>SafeZone</strong>
-        <span class="muted small">Sala</span>
-        <button id="roomCode" class="room-code" title="Clique para copiar"></button>
-        <span id="peopleCount" class="muted small"></span>
-      </div>
-      <div class="actions">
-        <span id="shareStatus" class="share-status" hidden></span>
-        <button id="shareBtn" class="btn primary">Compartilhar tela</button>
-        <button id="leaveBtn" class="btn">Sair da sala</button>
-      </div>
-    </header>
+    <nav class="guild-rail" aria-label="Navegação">
+      <div class="guild-icon active" aria-label="SafeZone">S</div>
+      <div class="rail-separator"></div>
+      <div class="rail-live" title="Sala ativa"></div>
+    </nav>
 
-    <aside class="sidebar card">
-      <h2>Pessoas na sala</h2>
-      <p class="muted small">Escolha quem você quer assistir. Só a transmissão escolhida é recebida.</p>
-      <ul id="memberList" class="members"></ul>
+    <aside class="channel-sidebar">
+      <header class="channel-header"><span>SafeZone</span><span class="chevron">⌄</span></header>
+      <div class="channel-content">
+        <p class="section-label">SALA DE FILME</p>
+        <div class="room-channel active"><span class="channel-hash">#</span><span class="room-channel-name">sala</span><span class="live-dot"></span></div>
+        <div class="invite-card">
+          <span class="invite-label">CÓDIGO DE CONVITE</span>
+          <button id="roomCode" class="room-code" title="Clique para copiar o código"></button>
+          <span class="invite-hint">Clique para copiar e compartilhar</span>
+        </div>
+        <button id="shareBtn" class="btn primary wide share-button">Compartilhar tela</button>
+        <div class="share-indicator"><span class="status-dot"></span><span id="shareStatus" hidden></span><span id="shareIdle">Pronto para assistir</span></div>
+      </div>
+      <footer class="user-panel">
+        <div class="user-avatar">S</div>
+        <div class="user-copy"><strong>Na sala</strong><span id="peopleCount" class="muted small"></span></div>
+        <button id="leaveBtn" class="leave-button" title="Sair da sala" aria-label="Sair da sala">↪</button>
+      </footer>
     </aside>
 
-    <main class="viewer card">
-      <div class="viewer-head">
-        <span id="watchTitle">Nenhuma transmissão selecionada</span>
-        <span id="stats" class="stats"></span>
-      </div>
-      <div id="stage" class="stage">
-        <video id="video" playsinline autoplay hidden></video>
-        <div id="stageEmpty" class="stage-empty">
-          <p id="stageMsg" class="stage-msg">Escolha uma pessoa que esteja transmitindo para assistir.</p>
-        </div>
-        <div id="controls" class="controls" hidden>
-          <button id="muteBtn" class="icon-btn" title="Mudo">🔊</button>
-          <input id="volume" type="range" min="0" max="1" step="0.01" value="1">
-          <span class="grow"></span>
-          <button id="fullBtn" class="icon-btn" title="Tela cheia (duplo clique)">⛶</button>
-        </div>
+    <main class="main-panel">
+      <header class="room-header">
+        <div class="room-heading"><span class="channel-hash">#</span><strong>sala</strong><span class="header-divider"></span><span class="muted small">Assista junto com a sala</span></div>
+        <div class="room-header-actions"><span class="secure-label"><span class="secure-dot"></span> Mídia cifrada via WebRTC</span></div>
+      </header>
+      <div class="room-body">
+        <section class="viewer">
+          <div class="viewer-head">
+            <span id="watchTitle">Nenhuma transmissão selecionada</span>
+            <span id="stats" class="stats"></span>
+          </div>
+          <div id="stage" class="stage">
+            <video id="video" playsinline autoplay hidden></video>
+            <div id="stageEmpty" class="stage-empty">
+              <div class="empty-icon" aria-hidden="true">▶</div>
+              <p class="empty-title">A sala está pronta</p>
+              <p id="stageMsg" class="stage-msg">Quando alguém começar a transmitir, escolha essa pessoa para assistir.</p>
+            </div>
+            <div id="controls" class="controls" hidden>
+              <button id="muteBtn" class="icon-btn" title="Mudo">🔊</button>
+              <input id="volume" type="range" min="0" max="1" step="0.01" value="1" aria-label="Volume">
+              <span class="grow"></span>
+              <button id="fullBtn" class="icon-btn" title="Tela cheia (duplo clique)">⛶</button>
+            </div>
+          </div>
+        </section>
+        <aside class="members-sidebar">
+          <div class="members-heading"><span>Pessoas</span><span class="member-count" id="memberCountBadge"></span></div>
+          <p class="members-hint">Selecione quem está transmitindo para assistir.</p>
+          <ul id="memberList" class="members"></ul>
+        </aside>
       </div>
     </main>
   </section>

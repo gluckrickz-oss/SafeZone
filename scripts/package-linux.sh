@@ -5,6 +5,7 @@ cd "$(dirname "$0")/.."
 VERSION="$(node -p "require('./package.json').version")"
 ELECTRON_DIST="node_modules/electron/dist"
 [ -x "$ELECTRON_DIST/electron" ] || { echo "Electron não encontrado. Rode: npm ci"; exit 1; }
+[ -f package-lock.json ] || { echo "package-lock.json não encontrado. Rode npm install para gerar o lockfile e revise-o antes de empacotar."; exit 1; }
 
 node scripts/vendor.js
 node --test test/*.test.js
@@ -27,7 +28,8 @@ cp scripts/install.sh "$OUT/install.sh"
 cp README.md SECURITY.md CHANGELOG.md "$OUT"/
 chmod 755 "$OUT/safezone" "$OUT/install.sh" "$OUT/safezone-bin"
 
-[ -f package-lock.json ] && node scripts/sbom.js && cp build/sbom.cdx.json "$OUT/sbom.cdx.json" || true
+node scripts/sbom.js
+cp build/sbom.cdx.json "$OUT/sbom.cdx.json"
 
 tar -C build -czf "build/${NAME}.tar.gz" "$NAME"
 ( cd build && sha256sum "${NAME}.tar.gz" > "${NAME}.tar.gz.sha256" )
