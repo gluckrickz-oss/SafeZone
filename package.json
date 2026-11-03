@@ -1,0 +1,22 @@
+{
+  "name": "safezone",
+  "version": "1.0.0",
+  "description": "SafeZone: salas para assistir filme e série juntos, com o som de um programa só (Linux).",
+  "main": "main.js",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "vendor": "node scripts/vendor.js",
+    "prestart": "npm run vendor",
+    "start": "electron .",
+    "start:dev": "electron . --no-sandbox",
+    "test": "node --test test/*.test.js",
+    "sbom": "node scripts/sbom.js",
+    "audit": "npm audit --audit-level=low",
+    "package:linux": "sh scripts/package-linux.sh"
+  },
+  "devDependencies": {
+    "electron": "45.2.1",
+    "peerjs": "1.5.5"
+  }
+}

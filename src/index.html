@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob: mediastream:; connect-src https://0.peerjs.com wss://0.peerjs.com; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <title>SafeZone</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <section id="home" class="home">
+    <div class="home-card card">
+      <h1 class="logo">SafeZone</h1>
+      <p class="tagline">Um filme, uma série, a galera junta — e o som só do player.</p>
+      <label class="field">
+        <span>Seu nome</span>
+        <input id="nameInput" class="input" maxlength="24" placeholder="Como o pessoal vai te ver" autocomplete="off">
+      </label>
+      <button id="createBtn" class="btn primary wide">Criar sala</button>
+      <div class="divider">ou entre numa sala</div>
+      <div class="join-row">
+        <input id="codeInput" class="input" maxlength="8" placeholder="CÓDIGO" autocomplete="off" spellcheck="false">
+        <button id="joinBtn" class="btn">Entrar</button>
+      </div>
+      <p id="homeError" class="error" hidden></p>
+    </div>
+  </section>
+
+  <section id="room" class="room" hidden>
+    <header class="topbar card">
+      <div class="brand">
+        <strong>SafeZone</strong>
+        <span class="muted small">Sala</span>
+        <button id="roomCode" class="room-code" title="Clique para copiar"></button>
+        <span id="peopleCount" class="muted small"></span>
+      </div>
+      <div class="actions">
+        <span id="shareStatus" class="share-status" hidden></span>
+        <button id="shareBtn" class="btn primary">Compartilhar tela</button>
+        <button id="leaveBtn" class="btn">Sair da sala</button>
+      </div>
+    </header>
+
+    <aside class="sidebar card">
+      <h2>Pessoas na sala</h2>
+      <p class="muted small">Escolha quem você quer assistir. Só a transmissão escolhida é recebida.</p>
+      <ul id="memberList" class="members"></ul>
+    </aside>
+
+    <main class="viewer card">
+      <div class="viewer-head">
+        <span id="watchTitle">Nenhuma transmissão selecionada</span>
+        <span id="stats" class="stats"></span>
+      </div>
+      <div id="stage" class="stage">
+        <video id="video" playsinline autoplay hidden></video>
+        <div id="stageEmpty" class="stage-empty">
+          <p id="stageMsg" class="stage-msg">Escolha uma pessoa que esteja transmitindo para assistir.</p>
+        </div>
+        <div id="controls" class="controls" hidden>
+          <button id="muteBtn" class="icon-btn" title="Mudo">🔊</button>
+          <input id="volume" type="range" min="0" max="1" step="0.01" value="1">
+          <span class="grow"></span>
+          <button id="fullBtn" class="icon-btn" title="Tela cheia (duplo clique)">⛶</button>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <div id="shareModal" class="modal" hidden>
+    <div class="modal-card card">
+      <h2>O que você quer compartilhar?</h2>
+      <div id="tabs" class="tabs">
+        <button class="tab active" data-kind="window">Janelas</button>
+        <button class="tab" data-kind="screen">Telas</button>
+      </div>
+      <div id="sourceGrid" class="source-grid"></div>
+      <p id="waylandNote" class="hint" hidden>No Wayland o próprio sistema vai perguntar qual tela ou janela compartilhar.</p>
+      <div class="field-row">
+        <label class="field">
+          <span>Som de qual programa?</span>
+          <select id="appSelect"></select>
+        </label>
+        <label class="field">
+          <span>Qualidade</span>
+          <select id="qualitySelect">
+            <option value="720" selected>720p (padrão)</option>
+            <option value="1080">1080p (internet boa)</option>
+          </select>
+        </label>
+      </div>
+      <p class="hint">Só o som desse programa vai para a sala — a voz do Discord não vaza.
+        Netflix, Prime e Disney+ no navegador aparecem pretos por causa da proteção contra cópia.</p>
+      <div class="modal-actions">
+        <button id="cancelShare" class="btn">Cancelar</button>
+        <button id="confirmShare" class="btn primary" disabled>Compartilhar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="vendor/peerjs.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

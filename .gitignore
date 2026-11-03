@@ -1,0 +1,10 @@
+node_modules/
+build/
+dist/
+src/vendor/
+.env
+.env.*
+turn.json
+*.pem
+*.key
+*.log
