@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.3
+- No Windows, a janela principal agora aparece imediatamente ao iniciar, em vez de esperar pelo evento de renderização; falhas de carregamento também mostram e focam a janela com o diagnóstico.
+
 ## 1.3.2
 - Abre a janela somente após a interface estar pronta e mostra um erro visível se o carregamento falhar.
 - No Windows, o botão de atualização baixa o instalador, valida o SHA-256 e inicia a atualização sem abrir a página do GitHub.

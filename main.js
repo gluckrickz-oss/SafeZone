@@ -87,7 +87,7 @@ function hardenSession(ses) {
 function createWindow() {
   nativeTheme.themeSource = 'dark';
   win = new BrowserWindow({
-    show: false, width: 1280, height: 760, minWidth: 900, minHeight: 560,
+    show: process.platform === 'win32', width: 1280, height: 760, minWidth: 900, minHeight: 560,
     title: 'SafeZone', backgroundColor: '#070a12', autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
