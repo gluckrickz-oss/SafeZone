@@ -48,7 +48,6 @@
         <button class="room-channel channel-select active" data-channel="watch"><span class="channel-hash">▶</span><span class="room-channel-name">sala</span></button>
         <p class="section-label">CANAIS DE TEXTO</p>
         <button class="room-channel channel-select" data-channel="geral"><span class="channel-hash">#</span><span class="room-channel-name">geral</span></button>
-        <button class="room-channel channel-select" data-channel="filmes"><span class="channel-hash">#</span><span class="room-channel-name">filmes</span></button>
         <p class="section-label voice-label">CANAIS DE VOZ</p>
         <button id="voiceChannelBtn" class="room-channel voice-channel"><span class="voice-symbol">◖))</span><span class="room-channel-name">voz-geral</span><span id="voiceChannelCount" class="voice-count">0</span></button>
         <div class="invite-card">
@@ -94,6 +93,7 @@
           </div>
         </section>
         <section id="chatPanel" class="chat-panel" hidden>
+          <p class="chat-notice">Mensagens ao vivo · sem histórico para quem entrar depois</p>
           <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
           <form id="chatForm" class="chat-form">
             <input id="chatInput" maxlength="500" class="input" placeholder="Mensagem em #geral" autocomplete="off" aria-label="Mensagem">
