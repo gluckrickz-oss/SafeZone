@@ -3,10 +3,9 @@
 set -eu
 cd "$(dirname "$0")/.."
 VERSION="$(node -p "require('./package.json').version")"
-ELECTRON_BIN="$(node -p "require('electron')")"
-[ -f "$ELECTRON_BIN" ] || { echo "Electron não encontrado no caminho retornado pelo pacote: $ELECTRON_BIN"; ls -la node_modules/electron node_modules/electron/dist 2>/dev/null || true; echo "Rode npm ci em Linux x64."; exit 1; }
-ELECTRON_DIST="$(dirname "$ELECTRON_BIN")"
-chmod 755 "$ELECTRON_BIN"
+ELECTRON_DIST="node_modules/electron/dist"
+[ -f "$ELECTRON_DIST/electron" ] || { echo "Electron não encontrado em $ELECTRON_DIST."; ls -la node_modules/electron node_modules/electron/dist 2>/dev/null || true; echo "Rode npm ci em Linux x64."; exit 1; }
+chmod 755 "$ELECTRON_DIST/electron"
 [ -f package-lock.json ] || { echo "package-lock.json não encontrado. Rode npm install para gerar o lockfile e revise-o antes de empacotar."; exit 1; }
 
 node scripts/vendor.js
