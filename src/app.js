@@ -3,8 +3,8 @@
 // e quem está transmitindo; o vídeo vai direto de quem transmite para quem escolheu assistir.
 // Tudo que chega pela rede é tratado como não confiável: formato, tamanho e frequência são conferidos.
 const ROOM_PREFIX = 'safezone-sala-';
-const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 32 símbolos: 8 letras = 40 bits
-const CODE_LEN = 8;
+const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 32 símbolos: 13 caracteres = 65 bits
+const CODE_LEN = 13;
 const MAX_MEMBERS = 12;
 const TEXT_CHANNELS = new Set(['geral', 'filmes']);
 const VOICE_CHANNEL = 'voz-geral';
@@ -33,7 +33,7 @@ const ui = Object.fromEntries(['home', 'room', 'nameInput', 'codeInput', 'create
   'muteBtn', 'volume', 'fullBtn', 'shareModal', 'sourceGrid', 'appSelect', 'qualitySelect', 'cancelShare', 'confirmShare', 'toast',
   'tabs', 'waylandNote', 'audioLabel', 'audioHint', 'myNickname', 'chatPanel', 'chatMessages', 'chatForm', 'chatInput',
   'voiceChannelBtn', 'voiceChannelCount', 'voicePanel', 'voicePanelHint', 'voiceRoster', 'voiceToggleBtn', 'micBtn',
-  'audioSettingsBtn', 'audioSettingsRoomBtn', 'audioSettingsModal', 'audioSettingsForm', 'audioDriverLabel', 'microphoneSelect', 'speakerSelect', 'audioSettingsHint', 'loadAudioDevices', 'cancelAudioSettings',
+  'audioSettingsBtn', 'audioSettingsRoomBtn', 'audioSettingsModal', 'audioSettingsForm', 'audioDriverLabel', 'microphoneSelect', 'speakerSelect', 'audioSettingsHint', 'loadAudioDevices', 'cancelAudioSettings', 'voiceModeSelect', 'pushToTalkKey', 'echoCancellation', 'noiseSuppression', 'autoGainControl',
   'checkUpdatesBtn', 'updateStatus', 'updateModal', 'updateModalText', 'openReleaseBtn', 'closeUpdateModal'].map((id) => [id, $(id)]));
 
 const isId = (s) => typeof s === 'string' && /^[\w-]{1,64}$/.test(s);
@@ -52,7 +52,15 @@ const members = new Map(); // só o dono: id -> { conn, name, streaming, lastSee
 let memberList = [];       // todos: [{ id, name, streaming, owner }]
 let activeChannel = 'watch', voiceRoster = [], voiceStream = null, voiceChannel = null, micMuted = false;
 let selectedMicrophone = '', selectedSpeaker = '', latestUpdateAvailable = false;
+let voiceMode = 'open', pushToTalkCode = 'KeyV';
+let audioProcessing = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
 try { selectedMicrophone = localStorage.getItem('safezone-microphone') || ''; selectedSpeaker = localStorage.getItem('safezone-speaker') || ''; } catch {}
+try {
+  const savedVoice = JSON.parse(localStorage.getItem('safezone-voice-settings') || '{}');
+  if (savedVoice.mode === 'open' || savedVoice.mode === 'ptt') voiceMode = savedVoice.mode;
+  if (typeof savedVoice.pushToTalkCode === 'string' && /^[A-Z][A-Za-z0-9]+$|^(Space|Backquote|BracketLeft|BracketRight|Comma|Period|Slash|Semicolon|Quote|Minus|Equal)$/.test(savedVoice.pushToTalkCode)) pushToTalkCode = savedVoice.pushToTalkCode;
+  for (const key of Object.keys(audioProcessing)) if (typeof savedVoice[key] === 'boolean') audioProcessing[key] = savedVoice[key];
+} catch {}
 const chatHistory = new Map([...TEXT_CHANNELS].map((channel) => [channel, []]));
 const voiceCalls = new Map(), voiceAudio = new Map();
 let localStream = null, audioPipe = null;
@@ -86,6 +94,45 @@ function readName() {
   return name;
 }
 
+function saveVoiceSettings() {
+  try { localStorage.setItem('safezone-voice-settings', JSON.stringify({ mode: voiceMode, pushToTalkCode, ...audioProcessing })); } catch {}
+}
+
+function formatHotkey(code) {
+  if (code === 'Space') return 'Espaço';
+  if (code.startsWith('Key')) return code.slice(3);
+  if (code.startsWith('Digit')) return code.slice(5);
+  if (/^F\d{1,2}$/.test(code)) return code;
+  return code;
+}
+
+function setPushToTalk(pressed) {
+  if (voiceMode !== 'ptt' || !voiceStream || voiceChannel !== VOICE_CHANNEL) return;
+  micMuted = !pressed;
+  for (const track of voiceStream.getAudioTracks()) track.enabled = pressed;
+  renderVoiceChannel();
+}
+
+document.addEventListener('keydown', (event) => {
+  if (ui.pushToTalkKey.dataset.listening === 'true') {
+    event.preventDefault();
+    if (event.code === 'Escape') { ui.pushToTalkKey.dataset.listening = ''; ui.pushToTalkKey.textContent = formatHotkey(pushToTalkCode); return; }
+    if (!event.repeat && !event.ctrlKey && !event.altKey && !event.metaKey && (/^(Key[A-Z]|Digit[0-9]|F([1-9]|1[0-2])|Space)$/.test(event.code))) {
+      pushToTalkCode = event.code;
+      ui.pushToTalkKey.dataset.listening = '';
+      ui.pushToTalkKey.textContent = formatHotkey(pushToTalkCode);
+      saveVoiceSettings();
+    }
+    return;
+  }
+  if (event.code !== pushToTalkCode || event.repeat || event.ctrlKey || event.altKey || event.metaKey) return;
+  const target = event.target;
+  if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))) return;
+  if (voiceMode === 'ptt') { event.preventDefault(); setPushToTalk(true); }
+});
+document.addEventListener('keyup', (event) => { if (event.code === pushToTalkCode) setPushToTalk(false); });
+window.addEventListener('blur', () => setPushToTalk(false));
+
 async function refreshAudioDevices(requestPermission) {
   try {
     if (requestPermission) {
@@ -115,6 +162,11 @@ async function refreshAudioDevices(requestPermission) {
 
 async function openAudioSettings() {
   ui.audioSettingsModal.hidden = false;
+  ui.voiceModeSelect.value = voiceMode;
+  ui.pushToTalkKey.textContent = formatHotkey(pushToTalkCode);
+  ui.echoCancellation.checked = audioProcessing.echoCancellation;
+  ui.noiseSuppression.checked = audioProcessing.noiseSuppression;
+  ui.autoGainControl.checked = audioProcessing.autoGainControl;
   ui.audioDriverLabel.textContent = 'Driver: detectando…';
   window.safezone.audioDriver().then((label) => { ui.audioDriverLabel.textContent = 'Driver detectado: ' + label; })
     .catch(() => { ui.audioDriverLabel.textContent = 'Driver de áudio padrão do sistema'; });
@@ -132,7 +184,14 @@ async function saveAudioSettings(event) {
   if (wasInVoice) leaveVoice();
   selectedMicrophone = ui.microphoneSelect.value;
   selectedSpeaker = ui.speakerSelect.value;
+  voiceMode = ui.voiceModeSelect.value === 'ptt' ? 'ptt' : 'open';
+  audioProcessing = {
+    echoCancellation: ui.echoCancellation.checked,
+    noiseSuppression: ui.noiseSuppression.checked,
+    autoGainControl: ui.autoGainControl.checked,
+  };
   try { localStorage.setItem('safezone-microphone', selectedMicrophone); localStorage.setItem('safezone-speaker', selectedSpeaker); } catch {}
+  saveVoiceSettings();
   try {
     await applySpeaker(selectedSpeaker);
     ui.audioSettingsModal.hidden = true;
@@ -176,6 +235,10 @@ ui.audioSettingsRoomBtn.onclick = openAudioSettings;
 ui.loadAudioDevices.onclick = () => refreshAudioDevices(true);
 ui.cancelAudioSettings.onclick = () => { ui.audioSettingsModal.hidden = true; };
 ui.audioSettingsForm.onsubmit = saveAudioSettings;
+ui.pushToTalkKey.onclick = () => {
+  ui.pushToTalkKey.textContent = 'Pressione uma tecla…';
+  ui.pushToTalkKey.dataset.listening = 'true';
+};
 ui.checkUpdatesBtn.onclick = () => latestUpdateAvailable
   ? window.safezone.openReleasePage().catch(() => toast('Não consegui abrir o GitHub.'))
   : checkForUpdates();
@@ -193,7 +256,7 @@ ui.joinBtn.onclick = () => {
   const name = readName();
   if (!name) return;
   const code = ui.codeInput.value.trim().toUpperCase();
-  if (!new RegExp('^[' + CODE_CHARS + ']{' + CODE_LEN + '}$').test(code)) return showHomeError('O código da sala tem ' + CODE_LEN + ' letras e números.');
+  if (!new RegExp('^[' + CODE_CHARS + ']{' + CODE_LEN + '}$').test(code)) return showHomeError('O convite tem ' + CODE_LEN + ' letras e números. Atualize o SafeZone de quem criou a sala para usar convites novos.');
   myName = name; showHomeError(''); setHomeBusy(true); joinRoom(code);
 };
 ui.codeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') ui.joinBtn.click(); });
@@ -543,21 +606,24 @@ function renderVoiceChannel() {
   const joined = voiceChannel === VOICE_CHANNEL;
   ui.voiceToggleBtn.textContent = joined ? 'Sair do canal de voz' : 'Entrar no canal de voz';
   ui.voiceToggleBtn.classList.toggle('danger', joined);
-  ui.voicePanelHint.textContent = joined ? (micMuted ? 'Você está conectado com o microfone desligado.' : 'Seu microfone está conectado ao canal.') : 'Entre no canal para conversar com quem está na sala.';
+  ui.voicePanelHint.textContent = joined ? (voiceMode === 'ptt'
+    ? (micMuted ? `Push to talk ativo · segure ${formatHotkey(pushToTalkCode)} para falar.` : 'Microfone transmitindo enquanto a tecla está pressionada.')
+    : (micMuted ? 'Você está conectado com o microfone desligado.' : 'Seu microfone está conectado ao canal.')) : 'Entre no canal para conversar com quem está na sala.';
   ui.micBtn.hidden = !joined;
-  ui.micBtn.textContent = micMuted ? '🔇' : '🎙';
-  ui.micBtn.title = micMuted ? 'Ativar microfone' : 'Silenciar microfone';
+  ui.micBtn.textContent = voiceMode === 'ptt' ? (micMuted ? '🎙' : '🔴') : (micMuted ? '🔇' : '🎙');
+  ui.micBtn.title = voiceMode === 'ptt' ? `Segure para falar · ${formatHotkey(pushToTalkCode)}` : (micMuted ? 'Ativar microfone' : 'Silenciar microfone');
   ui.micBtn.setAttribute('aria-label', ui.micBtn.title);
 }
 
 async function enterVoice() {
   if (voiceChannel === VOICE_CHANNEL) { leaveVoice(); return; }
   try {
-    const audio = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
+    const audio = { ...audioProcessing };
     if (selectedMicrophone) audio.deviceId = { exact: selectedMicrophone };
     voiceStream = await navigator.mediaDevices.getUserMedia({ audio, video: false });
     voiceChannel = VOICE_CHANNEL;
-    micMuted = false;
+    micMuted = voiceMode === 'ptt';
+    for (const track of voiceStream.getAudioTracks()) track.enabled = !micMuted;
     sendToOwner({ t: 'voice-join', channel: VOICE_CHANNEL });
   } catch (err) {
     if (err && err.name === 'NotAllowedError') toast('Permita o acesso ao microfone para entrar no canal de voz.');
@@ -619,10 +685,14 @@ document.querySelectorAll('.channel-select').forEach((button) => { button.onclic
 ui.voiceChannelBtn.onclick = () => { selectChannel(VOICE_CHANNEL); if (voiceChannel !== VOICE_CHANNEL) enterVoice(); };
 ui.voiceToggleBtn.onclick = enterVoice;
 ui.micBtn.onclick = () => {
+  if (voiceMode === 'ptt') return;
   micMuted = !micMuted;
   if (voiceStream) for (const track of voiceStream.getAudioTracks()) track.enabled = !micMuted;
   renderVoiceChannel();
 };
+ui.micBtn.onpointerdown = (event) => { if (voiceMode === 'ptt') { event.preventDefault(); ui.micBtn.setPointerCapture(event.pointerId); setPushToTalk(true); } };
+ui.micBtn.onpointerup = () => setPushToTalk(false);
+ui.micBtn.onpointercancel = () => setPushToTalk(false);
 ui.chatForm.onsubmit = (event) => {
   event.preventDefault();
   const text = ui.chatInput.value.trim().slice(0, 500);

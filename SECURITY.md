@@ -29,7 +29,7 @@ O mantenedor avalia o impacto, prepara uma correção, publica uma versão atual
 
 ### Limites conhecidos
 
-- Não há autenticação de contas. Quem obtiver o código de oito caracteres pode tentar entrar na sala.
+- Não há autenticação de contas. O convite aleatório atual tem 13 caracteres (65 bits); quem obtiver o convite ainda pode tentar entrar na sala.
 - O dono da sala coordena a lista de participantes; não há moderação, bloqueio individual ou confirmação de identidade.
 - WebRTC cifra mídia em trânsito, mas o SafeZone não oferece criptografia de ponta a ponta com identidade verificada. A sinalização usa o serviço PeerJS; STUN públicos podem observar endereços IP. Se TURN estiver configurado, o tráfego pode passar por esse relay.
 - Conteúdo protegido por DRM pode aparecer preto durante a captura de tela.
@@ -40,6 +40,7 @@ O mantenedor avalia o impacto, prepara uma correção, publica uma versão atual
 - O SafeZone não tem telemetria nem conta de usuário.
 - Apelido, microfone e saída de áudio preferidos ficam no armazenamento local do perfil Electron; o apelido também é transmitido aos membros da sala enquanto a sessão está ativa.
 - O código da sala, mensagens de texto em memória, estado de transmissão, lista de participantes e mídia existem durante a sessão. O servidor PeerJS é usado para sinalização e os peers negociam a conexão WebRTC.
+- Preferências de voz, incluindo push to talk e processamento do microfone, são guardadas localmente no perfil Electron.
 - O token TURN é opcional e fica no arquivo local indicado acima. No Windows, ele fica no perfil do usuário, protegido pelas permissões da pasta de perfil. Não o inclua em issues, logs ou commits.
 - Para remover preferências e o token TURN, feche o SafeZone e apague `~/.config/SafeZone` no Linux ou `%APPDATA%\SafeZone` no Windows. Isso encerra a configuração local e exige recriar o token TURN se você voltar a usá-lo.
 

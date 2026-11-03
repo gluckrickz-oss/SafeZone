@@ -21,7 +21,7 @@
         <button id="createBtn" class="btn primary wide">Criar uma sala</button>
         <div class="divider">ou entre com um convite</div>
         <div class="join-row">
-          <input id="codeInput" class="input" maxlength="8" placeholder="CÓDIGO" autocomplete="off" spellcheck="false">
+          <input id="codeInput" class="input" maxlength="13" placeholder="CÓDIGO DE CONVITE" autocomplete="off" spellcheck="false">
           <button id="joinBtn" class="btn">Entrar</button>
         </div>
         <p id="homeError" class="error" hidden></p>
@@ -155,6 +155,13 @@
       <p id="audioDriverLabel" class="driver-label">Driver: detectando…</p>
       <label class="field"><span>Microfone</span><select id="microphoneSelect" class="input"></select></label>
       <label class="field"><span>Saída de áudio</span><select id="speakerSelect" class="input"></select></label>
+      <label class="field"><span>Ativação do microfone</span><select id="voiceModeSelect" class="input"><option value="open">Microfone aberto</option><option value="ptt">Push to talk · segurar para falar</option></select></label>
+      <div class="hotkey-row"><span>Tecla para falar</span><button id="pushToTalkKey" class="btn" type="button">V</button></div>
+      <fieldset class="audio-options"><legend>Processamento de voz</legend>
+        <label><input id="echoCancellation" type="checkbox"> Cancelamento de eco</label>
+        <label><input id="noiseSuppression" type="checkbox"> Redução de ruído</label>
+        <label><input id="autoGainControl" type="checkbox"> Ajuste automático do volume</label>
+      </fieldset>
       <p id="audioSettingsHint" class="hint">Carregue os dispositivos para mostrar os nomes. O sistema pode pedir autorização para acessar o microfone.</p>
       <div class="modal-actions">
         <button id="loadAudioDevices" class="btn" type="button">Detectar dispositivos</button>

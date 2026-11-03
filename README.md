@@ -76,7 +76,7 @@ No Windows, a captura de áudio oferece o som do sistema inteiro (todas as aplic
 ## Segurança
 
 - O app usa sandbox, CSP restrita e validação das mensagens recebidas.
-- O código da sala tem 8 caracteres; as salas aceitam até 12 pessoas.
+- O convite da sala tem 13 caracteres aleatórios; as salas aceitam até 12 pessoas. Convites da versão anterior com 8 caracteres não funcionam em salas criadas pela versão nova.
 - O token TURN nunca é incluído no repositório nem no pacote.
 - A janela só acessa o servidor de sinalização PeerJS e recursos locais do app.
 
@@ -93,6 +93,8 @@ No Linux, rode `chmod 600 ~/.config/SafeZone/turn.json`. No Windows, mantenha a 
 ## Privacidade
 
 O SafeZone não tem telemetria. O apelido, microfone, saída de áudio e qualidade preferida ficam no armazenamento local do perfil Electron; o apelido é compartilhado com a sala enquanto você está conectado. Mensagens de texto passam pelo computador que criou a sala e ficam em memória até ela fechar. Voz, vídeo e áudio usam WebRTC com criptografia em trânsito; a voz é enviada às pessoas no canal de voz. Se TURN estiver configurado, a mídia pode passar pelo relay. O PeerJS (`0.peerjs.com`) é usado para sinalização; STUN públicos podem observar endereços IP. O código da sala é a única barreira de entrada: quem souber o código pode tentar entrar. Veja [SECURITY.md](SECURITY.md) para o modelo de ameaça e instruções para apagar as configurações locais.
+
+Nas configurações de áudio, escolha microfone aberto ou push to talk, personalize a tecla de fala e ajuste cancelamento de eco, redução de ruído e ganho automático. Push to talk transmite apenas enquanto a tecla escolhida (V por padrão) ou o botão de microfone estiver pressionado. As preferências ficam neste computador.
 
 ## Limitações conhecidas
 
