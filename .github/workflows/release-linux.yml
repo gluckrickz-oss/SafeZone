@@ -25,6 +25,8 @@ jobs:
           node-version: 22
       - name: Install locked dependencies
         run: npm ci
+      - name: Download Electron Linux binary
+        run: node node_modules/electron/install.js
       - name: Audit dependencies
         run: npm run audit
       - name: Package Linux application
