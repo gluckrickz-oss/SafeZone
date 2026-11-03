@@ -11,14 +11,18 @@ if (process.platform !== 'win32' || process.arch !== 'x64') {
 
 const root = path.resolve(__dirname, '..');
 const pkg = require(path.join(root, 'package.json'));
-const electronRoot = path.dirname(require.resolve('electron'));
-const electronDist = path.join(electronRoot, 'dist');
+const electronExecutable = require('electron');
+const electronDist = path.dirname(electronExecutable);
 const name = `safezone-${pkg.version}-windows-x64`;
 const out = path.join(root, 'build', name);
 const appOut = path.join(out, 'resources', 'app');
 
-if (!fs.existsSync(path.join(electronDist, 'electron.exe'))) {
-  console.error('Electron para Windows não encontrado. Rode npm ci em um ambiente Windows x64.');
+if (!fs.existsSync(electronExecutable)) {
+  const electronRoot = path.dirname(require.resolve('electron/package.json'));
+  let contents = [];
+  try { contents = fs.readdirSync(electronRoot); } catch {}
+  console.error(`Executável do Electron não encontrado em ${electronExecutable}. Conteúdo do pacote: ${contents.join(', ') || '(vazio)'}`);
+  console.error('Rode npm ci em um ambiente Windows x64 e confira se a etapa de instalação do Electron foi concluída.');
   process.exit(1);
 }
 
