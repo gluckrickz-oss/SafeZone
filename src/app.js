@@ -135,7 +135,9 @@ document.addEventListener('cut', (event) => event.preventDefault());
 document.addEventListener('contextmenu', (event) => event.preventDefault());
 window.addEventListener('blur', () => {
   setPushToTalk(false);
-  document.documentElement.classList.add('privacy-shield');
+  platformReady.then((platform) => {
+    if (platform && !platform.windows && !document.hasFocus()) document.documentElement.classList.add('privacy-shield');
+  });
 });
 window.addEventListener('focus', () => document.documentElement.classList.remove('privacy-shield'));
 
@@ -219,13 +221,14 @@ async function checkForUpdates() {
     const result = await window.safezone.checkUpdates();
     latestUpdateAvailable = result.available;
     const installSteps = isWindows
-      ? 'Baixe o instalador Windows e execute-o para atualizar.'
-      : 'Baixe o pacote Linux, extraia-o e execute ./install.sh para atualizar.';
+      ? 'Clique em “Baixar e instalar”: o app baixa o instalador, confere o SHA-256 e abre a instalação. Esta janela será fechada.'
+      : 'Abra a página oficial, baixe o pacote Linux, extraia-o e execute ./install.sh para atualizar.';
     ui.updateModalText.textContent = result.available
-      ? `A versão ${result.latest} está disponível. Sua versão é ${result.current}. Abra a página oficial. ${installSteps} Feche o SafeZone antes de atualizar.`
+      ? `A versão ${result.latest} está disponível. Sua versão é ${result.current}. ${installSteps}`
       : `Você está usando a versão mais recente (${result.current}).`;
     ui.updateStatus.textContent = result.available ? `Versão ${result.latest} disponível` : `Atualizado · ${result.current}`;
-    ui.checkUpdatesBtn.textContent = result.available ? 'Baixar atualização' : 'Verificar atualizações no GitHub';
+    ui.checkUpdatesBtn.textContent = result.available ? (isWindows ? 'Atualizar agora' : 'Baixar atualização') : 'Verificar atualizações no GitHub';
+    ui.openReleaseBtn.textContent = isWindows ? 'Baixar e instalar' : 'Ver release no GitHub';
     ui.openReleaseBtn.hidden = !result.available;
   } catch {
     latestUpdateAvailable = false;
@@ -246,10 +249,31 @@ ui.pushToTalkKey.onclick = () => {
   ui.pushToTalkKey.dataset.listening = 'true';
 };
 ui.checkUpdatesBtn.onclick = () => latestUpdateAvailable
-  ? window.safezone.openReleasePage().catch(() => toast('Não consegui abrir o GitHub.'))
+  ? (isWindows ? startWindowsUpdate() : window.safezone.openReleasePage().catch(() => toast('Não consegui abrir o GitHub.')))
   : checkForUpdates();
 ui.closeUpdateModal.onclick = () => { ui.updateModal.hidden = true; };
-ui.openReleaseBtn.onclick = () => window.safezone.openReleasePage().catch(() => toast('Não consegui abrir o GitHub.'));
+ui.openReleaseBtn.onclick = () => isWindows && latestUpdateAvailable
+  ? startWindowsUpdate()
+  : window.safezone.openReleasePage().catch(() => toast('Não consegui abrir o GitHub.'));
+
+async function startWindowsUpdate() {
+  ui.openReleaseBtn.disabled = true;
+  ui.checkUpdatesBtn.disabled = true;
+  ui.openReleaseBtn.textContent = 'Baixando e verificando…';
+  ui.updateModalText.textContent = 'Baixando o instalador oficial e verificando o SHA-256. Esta janela fechará quando a instalação iniciar.';
+  try {
+    const result = await window.safezone.installUpdate();
+    ui.updateModalText.textContent = `O instalador ${result.version} foi aberto. Siga as etapas para substituir a versão atual.`;
+  } catch (err) {
+    const reason = err && err.message ? err.message : 'falha desconhecida';
+    ui.updateModalText.textContent = `Não consegui iniciar a atualização automática: ${reason} Você pode abrir a página oficial e instalar manualmente.`;
+    ui.openReleaseBtn.textContent = 'Abrir release no GitHub';
+    latestUpdateAvailable = false;
+    ui.openReleaseBtn.onclick = () => window.safezone.openReleasePage().catch(() => toast('Não consegui abrir o GitHub.'));
+    ui.checkUpdatesBtn.disabled = false;
+  }
+  ui.openReleaseBtn.disabled = false;
+}
 function showHomeError(text) { ui.homeError.textContent = text; ui.homeError.hidden = !text; }
 function setHomeBusy(busy) { ui.createBtn.disabled = busy; ui.joinBtn.disabled = busy; }
 
