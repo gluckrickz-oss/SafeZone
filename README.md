@@ -53,8 +53,8 @@ npm run audit     # npm audit
 ## Como usar
 
 1. Escolha seu apelido antes de criar uma sala ou entrar com um código de convite.
-2. Use `#geral` e `#filmes` para conversar por texto. As mensagens ficam na memória do computador que criou a sala.
-3. Em **Configurar áudio**, escolha o microfone, a saída, o modo de transmissão e os filtros de voz. Push to talk usa `V` por padrão; personalize a tecla nas configurações. No canal `voz-geral`, segure a tecla ou o botão do microfone para falar.
+2. Use `#geral` para conversar por texto. A sala retransmite mensagens ao vivo e não mantém histórico para novos participantes; ao trocar de canal ou sair, o texto exibido é apagado.
+3. Em **Configurar áudio**, escolha o microfone, a saída, o modo de transmissão e os filtros de voz. Ao entrar no canal de voz, o microfone começa silenciado. No modo aberto, clique no botão para ativá-lo; no push to talk, segure `V` por padrão (ou personalize a tecla nas configurações) para falar.
 4. Para assistir, clique em **Compartilhar tela**, escolha a janela e o áudio. Para ver a transmissão, selecione quem está transmitindo.
 
 Use **Verificar atualizações no GitHub** na tela inicial. Se houver uma versão nova, abra a release oficial. No Windows, baixe e execute o instalador. No Linux, extraia o pacote e execute `./install.sh`. Feche o SafeZone antes de atualizar.
@@ -92,7 +92,7 @@ No Linux, rode `chmod 600 ~/.config/SafeZone/turn.json`. No Windows, mantenha a 
 
 ## Privacidade
 
-O SafeZone não tem telemetria. O apelido, microfone, saída de áudio e qualidade preferida ficam no armazenamento local do perfil Electron; o apelido é compartilhado com a sala enquanto você está conectado. Mensagens de texto passam pelo computador que criou a sala e ficam em memória até ela fechar. Voz, vídeo e áudio usam WebRTC com criptografia em trânsito; a voz é enviada às pessoas no canal de voz. Se TURN estiver configurado, a mídia pode passar pelo relay. O PeerJS (`0.peerjs.com`) é usado para sinalização; STUN públicos podem observar endereços IP. O código da sala é a única barreira de entrada: quem souber o código pode tentar entrar. Veja [SECURITY.md](SECURITY.md) para o modelo de ameaça e instruções para apagar as configurações locais.
+O SafeZone não tem telemetria. O apelido, microfone, saída de áudio e qualidade preferida ficam no armazenamento local do perfil Electron; o apelido é compartilhado com a sala enquanto você está conectado. Mensagens de texto são retransmitidas ao vivo pelo computador que criou a sala, sem arquivo ou histórico enviado a quem entrar depois. O texto continua visível temporariamente na tela dos participantes ativos e não é criptografado de ponta a ponta: quem está na sala pode ler, copiar ou registrar as mensagens. Voz, vídeo e áudio usam WebRTC com criptografia em trânsito; a voz é enviada às pessoas no canal de voz. Se TURN estiver configurado, a mídia pode passar pelo relay. O PeerJS (`0.peerjs.com`) é usado para sinalização; STUN públicos podem observar endereços IP. O código da sala é a única barreira de entrada: quem souber o código pode tentar entrar. Veja [SECURITY.md](SECURITY.md) para o modelo de ameaça e instruções para apagar as configurações locais.
 
 Nas configurações de áudio, escolha microfone aberto ou push to talk, personalize a tecla de fala e ajuste cancelamento de eco, redução de ruído e ganho automático. Push to talk transmite apenas enquanto a tecla escolhida (V por padrão) ou o botão de microfone estiver pressionado. As preferências ficam neste computador.
 
