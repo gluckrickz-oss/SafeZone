@@ -130,7 +130,14 @@ document.addEventListener('keydown', (event) => {
   if (voiceMode === 'ptt') { event.preventDefault(); setPushToTalk(true); }
 });
 document.addEventListener('keyup', (event) => { if (event.code === pushToTalkCode) setPushToTalk(false); });
-window.addEventListener('blur', () => setPushToTalk(false));
+document.addEventListener('copy', (event) => event.preventDefault());
+document.addEventListener('cut', (event) => event.preventDefault());
+document.addEventListener('contextmenu', (event) => event.preventDefault());
+window.addEventListener('blur', () => {
+  setPushToTalk(false);
+  document.documentElement.classList.add('privacy-shield');
+});
+window.addEventListener('focus', () => document.documentElement.classList.remove('privacy-shield'));
 
 async function refreshAudioDevices(requestPermission) {
   try {
