@@ -4,6 +4,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('safezone', Object.freeze({
   platform: () => ipcRenderer.invoke('platform'),
   checkUpdates: () => ipcRenderer.invoke('check-updates'),
+  installUpdate: () => ipcRenderer.invoke('install-update'),
   openReleasePage: () => ipcRenderer.invoke('open-release-page'),
   audioDriver: () => ipcRenderer.invoke('audio-driver'),
   getSources: () => ipcRenderer.invoke('get-sources'),

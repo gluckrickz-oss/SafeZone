@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.2
+- Abre a janela somente após a interface estar pronta e mostra um erro visível se o carregamento falhar.
+- No Windows, o botão de atualização baixa o instalador, valida o SHA-256 e inicia a atualização sem abrir a página do GitHub.
+- Corrigida a cópia dos convites de 13 caracteres.
+
 ## 1.3.1
 - Aumentado o convite de sala para 13 caracteres aleatórios; versões antigas e novas exigem a mesma versão entre participantes.
 - Mantido apenas o canal de texto `#geral`, sem histórico retido ou enviado a quem entrar depois.

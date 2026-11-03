@@ -1,4 +1,4 @@
-# SafeZone 1.3.1 (Linux e Windows)
+# SafeZone 1.3.2 (Linux e Windows)
 
 Assista e converse com os amigos: crie uma sala, compartilhe o código e use os canais de texto e voz. No Linux, você escolhe o programa cujo áudio será enviado; no Windows, pode enviar o áudio do sistema inteiro ou nenhum áudio.
 
@@ -6,12 +6,12 @@ O SafeZone é multiplataforma, com superfície de ataque reduzida e foco em ter 
 
 ## Downloads
 
-- [Baixar para Linux x64 (.tar.gz)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.1-linux-x64.tar.gz)
-- [SHA-256 do pacote Linux](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.1-linux-x64.tar.gz.sha256)
-- [Instalador Windows 10/11 x64 (.exe)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.1-windows-x64-setup.exe)
-- [SHA-256 do instalador Windows](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.1-windows-x64-setup.exe.sha256)
-- [Versão portátil para Windows (.zip)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.1-windows-x64.zip)
-- [SHA-256 do pacote portátil](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.1-windows-x64.zip.sha256)
+- [Baixar para Linux x64 (.tar.gz)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.2-linux-x64.tar.gz)
+- [SHA-256 do pacote Linux](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.2-linux-x64.tar.gz.sha256)
+- [Instalador Windows 10/11 x64 (.exe)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.2-windows-x64-setup.exe)
+- [SHA-256 do instalador Windows](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.2-windows-x64-setup.exe.sha256)
+- [Versão portátil para Windows (.zip)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.2-windows-x64.zip)
+- [SHA-256 do pacote portátil](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.2-windows-x64.zip.sha256)
 - [Todas as versões e notas de lançamento](https://github.com/gluckrickz-oss/SafeZone/releases)
 
 ## Requisitos Linux
@@ -22,11 +22,11 @@ O SafeZone é multiplataforma, com superfície de ataque reduzida e foco em ter 
 
 ## Instalar (pacote pronto)
 
-Baixe o [pacote Linux x64](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.1-linux-x64.tar.gz) e o [checksum SHA-256](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.1-linux-x64.tar.gz.sha256):
+Baixe o [pacote Linux x64](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.2-linux-x64.tar.gz) e o [checksum SHA-256](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.2-linux-x64.tar.gz.sha256):
 
 ```bash
-tar xzf safezone-1.3.1-linux-x64.tar.gz
-cd safezone-1.3.1-linux-x64
+tar xzf safezone-1.3.2-linux-x64.tar.gz
+cd safezone-1.3.2-linux-x64
 ./install.sh
 safezone
 ```
@@ -35,7 +35,7 @@ O `install.sh` instala só para o seu usuário em `~/.local`. Ele só pede `sudo
 
 ## Instalar no Windows
 
-Baixe o [instalador SafeZone 1.3.1](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.1-windows-x64-setup.exe), confira o [SHA-256](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.1-windows-x64-setup.exe.sha256) e execute. Ele instala só para seu usuário, sem pedir administrador. A versão não é assinada e o Windows pode exibir o aviso do SmartScreen. Se preferir, use o [ZIP portátil](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.1-windows-x64.zip).
+Baixe o [instalador SafeZone 1.3.2](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.2-windows-x64-setup.exe), confira o [SHA-256](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.2-windows-x64-setup.exe.sha256) e execute. Ele instala só para seu usuário, sem pedir administrador. A versão não é assinada e o Windows pode exibir o aviso do SmartScreen. Se preferir, use o [ZIP portátil](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.2-windows-x64.zip).
 
 ## Rodar a partir do código
 
@@ -57,7 +57,7 @@ npm run audit     # npm audit
 3. Em **Configurar áudio**, escolha o microfone, a saída, o modo de transmissão e os filtros de voz. Ao entrar no canal de voz, o microfone começa silenciado. No modo aberto, clique no botão para ativá-lo; no push to talk, segure `V` por padrão (ou personalize a tecla nas configurações) para falar.
 4. Para assistir, clique em **Compartilhar tela**, escolha a janela e o áudio. Para ver a transmissão, selecione quem está transmitindo.
 
-Use **Verificar atualizações no GitHub** na tela inicial. Se houver uma versão nova, abra a release oficial. No Windows, baixe e execute o instalador. No Linux, extraia o pacote e execute `./install.sh`. Feche o SafeZone antes de atualizar.
+Use **Verificar atualizações no GitHub** na tela inicial. No Windows, **Atualizar agora** baixa o instalador oficial, confere o SHA-256 e abre o assistente para substituir os arquivos. No Linux, abra a release, extraia o pacote e execute `./install.sh` com o SafeZone fechado.
 
 A lista de programas com som mostra só quem está tocando áudio **agora** no Linux: dê play no player antes de abrir "Compartilhar tela".
 
@@ -103,4 +103,4 @@ Nas configurações de áudio, escolha microfone aberto ou push to talk, persona
 
 - A criptografia é a do WebRTC (DTLS-SRTP), mas **não há autenticação de usuários**: quem tem o código entra. Troque o código criando outra sala.
 - Os pacotes ainda não são assinados. Confira o `.sha256`; ele detecta alteração acidental, mas não comprova sozinho quem publicou o arquivo.
-- O app verifica releases no GitHub, mas a atualização é manual: baixe e execute o instalador (Windows) ou o `install.sh` (Linux). Atualizações do Electron e do PeerJS também são manuais.
+- A instalação de atualizações é automatizada no Windows após a confirmação do usuário; no Linux, ainda é necessário baixar o pacote e executar `./install.sh`. Atualizações do Electron e do PeerJS vêm nas novas releases.
