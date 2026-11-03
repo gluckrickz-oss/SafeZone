@@ -1,4 +1,4 @@
-# SafeZone 1.3.3 (Linux e Windows)
+# SafeZone 1.3.4 (Linux e Windows)
 
 Assista e converse com os amigos: crie uma sala, compartilhe o código e use os canais de texto e voz. No Linux, você escolhe o programa cujo áudio será enviado; no Windows, pode enviar o áudio do sistema inteiro ou nenhum áudio.
 
@@ -6,12 +6,12 @@ O SafeZone é multiplataforma, com superfície de ataque reduzida e foco em ter 
 
 ## Downloads
 
-- [Baixar para Linux x64 (.tar.gz)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.3-linux-x64.tar.gz)
-- [SHA-256 do pacote Linux](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.3-linux-x64.tar.gz.sha256)
-- [Instalador Windows 10/11 x64 (.exe)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.3-windows-x64-setup.exe)
-- [SHA-256 do instalador Windows](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.3-windows-x64-setup.exe.sha256)
-- [Versão portátil para Windows (.zip)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.3-windows-x64.zip)
-- [SHA-256 do pacote portátil](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.3-windows-x64.zip.sha256)
+- [Baixar para Linux x64 (.tar.gz)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.4-linux-x64.tar.gz)
+- [SHA-256 do pacote Linux](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.4-linux-x64.tar.gz.sha256)
+- [Instalador Windows 10/11 x64 (.exe)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.4-windows-x64-setup.exe)
+- [SHA-256 do instalador Windows](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.4-windows-x64-setup.exe.sha256)
+- [Versão portátil para Windows (.zip)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.4-windows-x64.zip)
+- [SHA-256 do pacote portátil](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.4-windows-x64.zip.sha256)
 - [Todas as versões e notas de lançamento](https://github.com/gluckrickz-oss/SafeZone/releases)
 
 ## Requisitos Linux
@@ -22,11 +22,11 @@ O SafeZone é multiplataforma, com superfície de ataque reduzida e foco em ter 
 
 ## Instalar (pacote pronto)
 
-Baixe o [pacote Linux x64](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.3-linux-x64.tar.gz) e o [checksum SHA-256](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.3-linux-x64.tar.gz.sha256):
+Baixe o [pacote Linux x64](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.4-linux-x64.tar.gz) e o [checksum SHA-256](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.4-linux-x64.tar.gz.sha256):
 
 ```bash
-tar xzf safezone-1.3.3-linux-x64.tar.gz
-cd safezone-1.3.3-linux-x64
+tar xzf safezone-1.3.4-linux-x64.tar.gz
+cd safezone-1.3.4-linux-x64
 ./install.sh
 safezone
 ```
@@ -35,7 +35,7 @@ O `install.sh` instala só para o seu usuário em `~/.local`. Ele só pede `sudo
 
 ## Instalar no Windows
 
-Baixe o [instalador SafeZone 1.3.3](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.3-windows-x64-setup.exe), confira o [SHA-256](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.3-windows-x64-setup.exe.sha256) e execute. Ele instala só para seu usuário, sem pedir administrador. A versão não é assinada e o Windows pode exibir o aviso do SmartScreen. Se preferir, use o [ZIP portátil](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.3-windows-x64.zip).
+Baixe o [instalador SafeZone 1.3.4](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.4-windows-x64-setup.exe), confira o [SHA-256](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.4-windows-x64-setup.exe.sha256) e execute. Ele instala só para seu usuário, sem pedir administrador. A versão não é assinada e o Windows pode exibir o aviso do SmartScreen. Se preferir, use o [ZIP portátil](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.4-windows-x64.zip).
 
 ## Rodar a partir do código
 
