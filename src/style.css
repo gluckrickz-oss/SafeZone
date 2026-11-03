@@ -142,6 +142,7 @@ input, select { color: var(--text); font: inherit; }
 .member-state { margin-top: 3px; color: var(--subtle); font-size: 10px; }
 .member.live .member-state { color: #4cc38a; }
 .chat-panel { display: flex; min-width: 0; min-height: 0; flex-direction: column; padding: 18px; }
+.chat-notice { margin: 0 0 8px; color: var(--subtle); font-size: 11px; }
 .chat-messages { display: flex; min-height: 0; flex: 1; flex-direction: column; gap: 14px; overflow-y: auto; padding: 4px 3px 16px; user-select: text; }
 .chat-message { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 10px; }
 .chat-avatar { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 50%; background: var(--accent); color: white; font-weight: 800; }
