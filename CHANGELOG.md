@@ -4,6 +4,7 @@
 - Aumentado o convite de sala para 13 caracteres aleatórios; versões antigas e novas exigem a mesma versão entre participantes.
 - Mantido apenas o canal de texto `#geral`, sem histórico retido ou enviado a quem entrar depois.
 - Microfone silenciado por padrão ao entrar no canal de voz; adicionado push to talk configurável e filtros de áudio.
+- Bloqueadas cópia de texto e impressão; adicionada proteção do sistema contra captura no Windows e tela preta temporária ao perder foco.
 - O lançamento desta versão gera pacotes Linux e Windows com o número reconhecido pelo verificador de atualizações.
 
 ## 1.3.0
