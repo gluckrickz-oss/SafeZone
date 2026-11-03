@@ -1,8 +1,9 @@
 'use strict';
 // SafeZone (Linux/Windows): salas para assistir filme e série juntos.
-const { app, BrowserWindow, ipcMain, desktopCapturer, session, nativeTheme, clipboard, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, desktopCapturer, session, nativeTheme, clipboard, shell, dialog } = require('electron');
 const { spawn, execFile } = require('node:child_process');
 const https = require('node:https');
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
@@ -86,7 +87,7 @@ function hardenSession(ses) {
 function createWindow() {
   nativeTheme.themeSource = 'dark';
   win = new BrowserWindow({
-    width: 1280, height: 760, minWidth: 900, minHeight: 560,
+    show: false, width: 1280, height: 760, minWidth: 900, minHeight: 560,
     title: 'SafeZone', backgroundColor: '#070a12', autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -97,6 +98,14 @@ function createWindow() {
   });
   // Windows excludes this window from standard desktop capture APIs.
   if (process.platform === 'win32') win.setContentProtection(true);
+  const showFallback = setTimeout(() => { if (win && !win.isDestroyed() && !win.isVisible()) win.show(); }, 8000);
+  win.once('ready-to-show', () => { clearTimeout(showFallback); if (win && !win.isDestroyed()) { win.show(); win.focus(); } });
+  win.webContents.on('did-fail-load', (_event, code, description, url, isMainFrame) => {
+    if (isMainFrame) dialog.showErrorBox('O SafeZone não conseguiu abrir', `${description} (${code})\n\n${url}`);
+  });
+  win.webContents.on('render-process-gone', (_event, details) => {
+    if (details.reason !== 'clean-exit') dialog.showErrorBox('O SafeZone foi fechado inesperadamente', `Motivo: ${details.reason}\nCódigo: ${details.exitCode}`);
+  });
   win.webContents.on('before-input-event', (event, input) => {
     if (input.type !== 'keyDown') return;
     const key = String(input.key || '').toLowerCase();
@@ -142,6 +151,50 @@ function latestRelease() {
     req.on('error', reject);
   });
 }
+
+async function readLimitedResponse(url, maxBytes) {
+  const response = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(10 * 60 * 1000) });
+  if (!response.ok || !response.body) throw new Error(`Download do GitHub falhou (HTTP ${response.status}).`);
+  let finalUrl;
+  try { finalUrl = new URL(response.url); } catch { throw new Error('Endereço do download inválido.'); }
+  if (finalUrl.protocol !== 'https:' || !['github.com', 'release-assets.githubusercontent.com'].includes(finalUrl.hostname)) throw new Error('O GitHub redirecionou para um endereço não autorizado.');
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of response.body) {
+    size += chunk.length;
+    if (size > maxBytes) throw new Error('O arquivo de atualização excede o tamanho permitido.');
+    chunks.push(Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks, size);
+}
+
+handle('install-update', async () => {
+  if (process.platform !== 'win32') throw new Error('A instalação automática está disponível no Windows. No Linux, use o pacote da release.');
+  const latest = await latestRelease();
+  if (!/^\d+\.\d+\.\d+$/.test(latest)) throw new Error('A versão publicada no GitHub não é válida.');
+  const current = app.getVersion().split('.').map(Number);
+  const next = latest.split('.').map(Number);
+  if (!next.some((part, i) => part !== current[i] && part > current[i] && next.slice(0, i).every((n, j) => n === current[j]))) {
+    throw new Error('Não há uma versão mais nova para instalar. Verifique novamente as atualizações.');
+  }
+
+  const base = `https://github.com/gluckrickz-oss/SafeZone/releases/download/v${latest}/safezone-${latest}-windows-x64-setup.exe`;
+  const [installerBytes, checksumBytes] = await Promise.all([readLimitedResponse(base, 300 * 1024 * 1024), readLimitedResponse(base + '.sha256', 4096)]);
+  const expected = checksumBytes.toString('utf8').trim().match(/^([a-f0-9]{64})\s/m);
+  const actual = crypto.createHash('sha256').update(installerBytes).digest('hex');
+  if (!expected || expected[1] !== actual) throw new Error('A verificação SHA-256 do instalador falhou. Nenhuma alteração foi feita.');
+
+  const installerPath = path.join(app.getPath('temp'), `safezone-${latest}-windows-x64-setup.exe`);
+  fs.writeFileSync(installerPath, installerBytes, { mode: 0o700 });
+  const child = spawn(installerPath, [], { detached: true, stdio: 'ignore', windowsHide: false });
+  await new Promise((resolve, reject) => {
+    child.once('spawn', resolve);
+    child.once('error', reject);
+  });
+  child.unref();
+  setTimeout(() => app.quit(), 500);
+  return { started: true, version: latest };
+});
 
 handle('check-updates', async () => {
   const current = app.getVersion();
@@ -220,7 +273,7 @@ handle('start-audio', async (event, id) => {
 handle('stop-audio', () => { stopAudio(); });
 
 handle('copy', (_e, text) => {
-  if (typeof text !== 'string' || !/^[A-Z2-9]{8}$/.test(text)) throw new Error('texto inválido');
+  if (typeof text !== 'string' || !/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{13}$/.test(text)) throw new Error('texto inválido');
   clipboard.writeText(text);
 });
 
@@ -271,6 +324,7 @@ function stopAudio() {
 }
 
 app.on('second-instance', () => { if (win) { if (win.isMinimized()) win.restore(); win.focus(); } });
-app.whenReady().then(() => { hardenSession(session.defaultSession); createWindow(); });
+app.whenReady().then(() => { hardenSession(session.defaultSession); createWindow(); })
+  .catch((err) => dialog.showErrorBox('O SafeZone não conseguiu iniciar', err && err.stack ? err.stack : String(err)));
 app.on('before-quit', stopAudio);
 app.on('window-all-closed', () => { stopAudio(); app.quit(); });
