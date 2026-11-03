@@ -14,7 +14,7 @@ DefaultGroupName=SafeZone
 PrivilegesRequired=lowest
 ArchitecturesInstallIn64BitMode=x64
 ArchitecturesAllowed=x64
-OutputDir=build
+OutputDir=..\build
 OutputBaseFilename=safezone-{#AppVersion}-windows-x64-setup
 Compression=lzma2
 SolidCompression=yes
@@ -27,7 +27,7 @@ UninstallDisplayIcon={app}\SafeZone.exe
 Name: "desktopicon"; Description: "Criar atalho na área de trabalho"; GroupDescription: "Atalhos:"; Flags: unchecked
 
 [Files]
-Source: "build\{#AppFolder}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\build\{#AppFolder}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\SafeZone"; Filename: "{app}\SafeZone.exe"
