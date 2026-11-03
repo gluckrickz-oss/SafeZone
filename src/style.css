@@ -52,6 +52,9 @@ input, select { color: var(--text); font: inherit; }
 .join-row { display: flex; gap: 8px; }
 .join-row .input { min-width: 0; text-transform: uppercase; letter-spacing: 3px; font-weight: 800; }
 .home-footnote { margin: 16px 0 0; color: #b5bac1; text-align: center; font-size: 12px; }
+.link-button { margin: 10px 6px 0; padding: 0; border: 0; background: none; color: #c4c8ff; font: inherit; text-decoration: underline; cursor: pointer; }
+.link-button:hover { color: #fff; }
+.update-status { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; }
 
 /* Room shell */
 .room { display: grid; grid-template-columns: 64px 232px minmax(0, 1fr); width: 100%; height: 100%; min-width: 0; background: var(--bg); }
@@ -152,6 +155,11 @@ input, select { color: var(--text); font: inherit; }
 .voice-panel-icon { display: grid; width: 80px; height: 80px; place-items: center; border-radius: 50%; background: rgba(35, 165, 89, .16); color: #4cc38a; font-size: 27px; }
 .voice-panel h2, .voice-panel p { margin: 0; }
 .voice-panel p { color: var(--muted); }
+.driver-label { margin: 0; padding: 10px; border-radius: 5px; background: rgba(88, 101, 242, .14); color: #c4c8ff; font-size: 12px; }
+.audio-settings { width: min(100%, 560px); }
+.audio-settings .field { display: grid; gap: 6px; }
+.audio-settings .field .input { background: #1e1f22; }
+.update-card { width: min(100%, 500px); }
 .voice-roster { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 8px 0; padding: 0; list-style: none; }
 .voice-roster li { padding: 7px 11px; border-radius: 16px; background: #383a40; }
 .voice-roster li.self { background: rgba(88, 101, 242, .3); }

@@ -26,7 +26,11 @@
         </div>
         <p id="homeError" class="error" hidden></p>
       </div>
-      <p class="home-footnote">Sem cadastro · Código de convite privado · Até 12 pessoas</p>
+      <div class="home-footnote">Sem cadastro · Código privado · Até 12 pessoas<br>
+        <button id="checkUpdatesBtn" class="link-button">Verificar atualizações no GitHub</button>
+        <span id="updateStatus" class="update-status" role="status"></span>
+        <button id="audioSettingsBtn" class="link-button">Configurar áudio</button>
+      </div>
     </div>
   </section>
 
@@ -102,6 +106,7 @@
           <p id="voicePanelHint">Entre no canal para conversar com quem está na sala.</p>
           <ul id="voiceRoster" class="voice-roster"></ul>
           <button id="voiceToggleBtn" class="btn primary">Entrar no canal de voz</button>
+          <button id="audioSettingsRoomBtn" class="btn">Microfone e saída de áudio</button>
         </section>
         <aside class="members-sidebar">
           <div class="members-heading"><span>Pessoas</span><span class="member-count" id="memberCountBadge"></span></div>
@@ -139,6 +144,33 @@
       <div class="modal-actions">
         <button id="cancelShare" class="btn">Cancelar</button>
         <button id="confirmShare" class="btn primary" disabled>Compartilhar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="audioSettingsModal" class="modal" hidden>
+    <form id="audioSettingsForm" class="modal-card card audio-settings">
+      <h2>Configurar áudio</h2>
+      <p class="hint">O SafeZone detecta o driver de áudio compatível com seu sistema. Escolha os dispositivos de entrada e saída disponíveis.</p>
+      <p id="audioDriverLabel" class="driver-label">Driver: detectando…</p>
+      <label class="field"><span>Microfone</span><select id="microphoneSelect" class="input"></select></label>
+      <label class="field"><span>Saída de áudio</span><select id="speakerSelect" class="input"></select></label>
+      <p id="audioSettingsHint" class="hint">Carregue os dispositivos para mostrar os nomes. O sistema pode pedir autorização para acessar o microfone.</p>
+      <div class="modal-actions">
+        <button id="loadAudioDevices" class="btn" type="button">Detectar dispositivos</button>
+        <button id="cancelAudioSettings" class="btn" type="button">Cancelar</button>
+        <button class="btn primary" type="submit">Salvar</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="updateModal" class="modal" hidden>
+    <div class="modal-card card update-card">
+      <h2>Atualização do SafeZone</h2>
+      <p id="updateModalText" class="hint"></p>
+      <div class="modal-actions">
+        <button id="closeUpdateModal" class="btn">Depois</button>
+        <button id="openReleaseBtn" class="btn primary" hidden>Ver release no GitHub</button>
       </div>
     </div>
   </div>

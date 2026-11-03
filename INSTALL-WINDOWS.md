@@ -7,17 +7,19 @@
 
 ## Baixar e abrir
 
-1. Baixe `safezone-1.2.0-windows-x64.zip` na página [Releases do SafeZone](https://github.com/gluckrickz-oss/SafeZone/releases/latest).
-2. Extraia o ZIP para uma pasta de sua preferência.
-3. Abra `SafeZone.exe`.
+1. Baixe `safezone-1.3.0-windows-x64-setup.exe` na página [Releases do SafeZone](https://github.com/gluckrickz-oss/SafeZone/releases/latest).
+2. Confira o checksum SHA-256 publicado junto ao instalador.
+3. Execute o instalador. Ele instala só para o seu usuário, sem privilégios de administrador.
 
-O pacote é portátil: não precisa de instalador nem de privilégios de administrador. A versão ainda não é assinada; o Windows pode exibir um aviso do SmartScreen. Confira o SHA-256 publicado junto ao ZIP antes de executar. O checksum detecta alterações acidentais, mas não substitui uma assinatura digital.
+A versão ainda não é assinada; o Windows pode exibir um aviso do SmartScreen. O checksum detecta alterações acidentais, mas não substitui uma assinatura digital. O ZIP portátil também está disponível para quem preferir não instalar.
 
 ## Áudio e compartilhamento
 
 O Windows permite capturar o áudio de saída do sistema inteiro. Isso inclui outros aplicativos, como chamadas, sons de notificação e a reprodução do próprio PC. Na janela de compartilhamento, escolha **Sem som** se não quiser enviar áudio. Para evitar que vozes ou notificações entrem na transmissão, silencie ou feche os outros aplicativos antes de compartilhar.
 
 Ao contrário da versão Linux, o Windows não oferece a escolha de capturar somente o áudio de um programa nesta versão.
+
+Na tela inicial, **Configurar áudio** permite selecionar o microfone e a saída de áudio. O SafeZone usa os dispositivos reconhecidos pelo Windows; não instala drivers de hardware.
 
 Para conversar por voz, entre no canal `voz-geral` e permita o acesso ao microfone. O canal de voz está disponível no Windows e no Linux.
 

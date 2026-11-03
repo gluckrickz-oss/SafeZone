@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.0
+- Instalador por usuário para Windows; no Linux, instalação pelo `install.sh` incluído no pacote.
+- Seleção de microfone e saída de áudio, com detecção do backend disponível.
+- Verificação manual de atualizações e acesso à release oficial do GitHub dentro do app.
+
 ## 1.2.0
 - Apelido informado antes de entrar na sala e referências antigas removidas da documentação.
 - Dois canais de texto e um canal de voz, com controles de microfone.

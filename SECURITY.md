@@ -20,6 +20,7 @@ O mantenedor avalia o impacto, prepara uma correção, publica uma versão atual
 
 - Electron com `sandbox`, `contextIsolation`, `webSecurity` ativos e `nodeIntegration` desativado.
 - CSP local restrita; a página aceita conexão de sinalização apenas com `0.peerjs.com`.
+- A consulta de atualização é feita pelo processo principal a uma URL fixa da API pública do GitHub; a instalação continua manual pelo instalador publicado.
 - IPC limitado à página local e com validação de argumentos; processos externos são iniciados sem shell.
 - Mensagens de sala validadas, com limite de tamanho, limite de frequência e até 12 participantes.
 - A permissão de mídia libera apenas microfone, sem acesso à câmera. Mensagens de texto são retransmitidas pelo computador que criou a sala; a voz é enviada por WebRTC aos participantes do canal.
@@ -32,12 +33,12 @@ O mantenedor avalia o impacto, prepara uma correção, publica uma versão atual
 - O dono da sala coordena a lista de participantes; não há moderação, bloqueio individual ou confirmação de identidade.
 - WebRTC cifra mídia em trânsito, mas o SafeZone não oferece criptografia de ponta a ponta com identidade verificada. A sinalização usa o serviço PeerJS; STUN públicos podem observar endereços IP. Se TURN estiver configurado, o tráfego pode passar por esse relay.
 - Conteúdo protegido por DRM pode aparecer preto durante a captura de tela.
-- Não há atualizador automático. O usuário precisa obter as versões por um canal confiável e instalar cada atualização manualmente.
+- A verificação no app informa se há uma release nova, mas não instala arquivos por conta própria. O usuário baixa e executa o instalador publicado no GitHub; confira o SHA-256 antes de abrir.
 
 ## Dados e armazenamento
 
 - O SafeZone não tem telemetria nem conta de usuário.
-- O apelido e a qualidade preferida ficam no armazenamento local do perfil Electron; o apelido também é transmitido aos membros da sala enquanto a sessão está ativa.
+- Apelido, microfone e saída de áudio preferidos ficam no armazenamento local do perfil Electron; o apelido também é transmitido aos membros da sala enquanto a sessão está ativa.
 - O código da sala, mensagens de texto em memória, estado de transmissão, lista de participantes e mídia existem durante a sessão. O servidor PeerJS é usado para sinalização e os peers negociam a conexão WebRTC.
 - O token TURN é opcional e fica no arquivo local indicado acima. No Windows, ele fica no perfil do usuário, protegido pelas permissões da pasta de perfil. Não o inclua em issues, logs ou commits.
 - Para remover preferências e o token TURN, feche o SafeZone e apague `~/.config/SafeZone` no Linux ou `%APPDATA%\SafeZone` no Windows. Isso encerra a configuração local e exige recriar o token TURN se você voltar a usá-lo.

@@ -32,7 +32,9 @@ const ui = Object.fromEntries(['home', 'room', 'nameInput', 'codeInput', 'create
   'shareBtn', 'shareStatus', 'shareIdle', 'leaveBtn', 'memberList', 'memberCountBadge', 'watchTitle', 'stats', 'stage', 'video', 'stageMsg', 'stageEmpty', 'controls',
   'muteBtn', 'volume', 'fullBtn', 'shareModal', 'sourceGrid', 'appSelect', 'qualitySelect', 'cancelShare', 'confirmShare', 'toast',
   'tabs', 'waylandNote', 'audioLabel', 'audioHint', 'myNickname', 'chatPanel', 'chatMessages', 'chatForm', 'chatInput',
-  'voiceChannelBtn', 'voiceChannelCount', 'voicePanel', 'voicePanelHint', 'voiceRoster', 'voiceToggleBtn', 'micBtn'].map((id) => [id, $(id)]));
+  'voiceChannelBtn', 'voiceChannelCount', 'voicePanel', 'voicePanelHint', 'voiceRoster', 'voiceToggleBtn', 'micBtn',
+  'audioSettingsBtn', 'audioSettingsRoomBtn', 'audioSettingsModal', 'audioSettingsForm', 'audioDriverLabel', 'microphoneSelect', 'speakerSelect', 'audioSettingsHint', 'loadAudioDevices', 'cancelAudioSettings',
+  'checkUpdatesBtn', 'updateStatus', 'updateModal', 'updateModalText', 'openReleaseBtn', 'closeUpdateModal'].map((id) => [id, $(id)]));
 
 const isId = (s) => typeof s === 'string' && /^[\w-]{1,64}$/.test(s);
 const cleanName = (s) => String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 24) || 'Alguém';
@@ -49,6 +51,8 @@ let lastOwnerMsg = 0, heartbeat = null, connectTimer = null, wayland = false, is
 const members = new Map(); // só o dono: id -> { conn, name, streaming, lastSeen }
 let memberList = [];       // todos: [{ id, name, streaming, owner }]
 let activeChannel = 'watch', voiceRoster = [], voiceStream = null, voiceChannel = null, micMuted = false;
+let selectedMicrophone = '', selectedSpeaker = '', latestUpdateAvailable = false;
+try { selectedMicrophone = localStorage.getItem('safezone-microphone') || ''; selectedSpeaker = localStorage.getItem('safezone-speaker') || ''; } catch {}
 const chatHistory = new Map([...TEXT_CHANNELS].map((channel) => [channel, []]));
 const voiceCalls = new Map(), voiceAudio = new Map();
 let localStream = null, audioPipe = null;
@@ -81,6 +85,102 @@ function readName() {
   try { localStorage.setItem('safezone-name', name); } catch {}
   return name;
 }
+
+async function refreshAudioDevices(requestPermission) {
+  try {
+    if (requestPermission) {
+      const temporary = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      temporary.getTracks().forEach((track) => track.stop());
+    }
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const inputs = devices.filter((device) => device.kind === 'audioinput');
+    const outputs = devices.filter((device) => device.kind === 'audiooutput');
+    ui.microphoneSelect.replaceChildren(new Option('Microfone padrão do sistema', ''));
+    inputs.forEach((device, i) => ui.microphoneSelect.add(new Option(device.label || `Microfone ${i + 1}`, device.deviceId)));
+    ui.speakerSelect.replaceChildren(new Option('Saída padrão do sistema', ''));
+    outputs.forEach((device, i) => ui.speakerSelect.add(new Option(device.label || `Saída de áudio ${i + 1}`, device.deviceId)));
+    ui.microphoneSelect.value = inputs.some((device) => device.deviceId === selectedMicrophone) ? selectedMicrophone : '';
+    ui.speakerSelect.value = outputs.some((device) => device.deviceId === selectedSpeaker) ? selectedSpeaker : '';
+    const supportsOutput = typeof HTMLMediaElement.prototype.setSinkId === 'function';
+    ui.speakerSelect.disabled = !supportsOutput;
+    ui.audioSettingsHint.textContent = inputs.length
+      ? (supportsOutput ? 'Escolha os dispositivos que quer usar. O microfone só é ativado ao entrar no canal de voz.' : 'Microfone detectado. A seleção de saída de áudio não é compatível com esta versão do sistema.')
+      : 'Nenhum microfone foi encontrado. Confira as permissões e os dispositivos do sistema.';
+  } catch (err) {
+    ui.audioSettingsHint.textContent = err && err.name === 'NotAllowedError'
+      ? 'A permissão do microfone foi negada. Ative-a nas permissões do SafeZone no sistema.'
+      : 'Não consegui listar os dispositivos de áudio. Confira as permissões do sistema.';
+  }
+}
+
+async function openAudioSettings() {
+  ui.audioSettingsModal.hidden = false;
+  ui.audioDriverLabel.textContent = 'Driver: detectando…';
+  window.safezone.audioDriver().then((label) => { ui.audioDriverLabel.textContent = 'Driver detectado: ' + label; })
+    .catch(() => { ui.audioDriverLabel.textContent = 'Driver de áudio padrão do sistema'; });
+  await refreshAudioDevices(false);
+}
+
+async function applySpeaker(deviceId) {
+  const elements = [...document.querySelectorAll('audio[data-peer]')];
+  await Promise.all(elements.map((audio) => typeof audio.setSinkId === 'function' ? audio.setSinkId(deviceId) : Promise.resolve()));
+}
+
+async function saveAudioSettings(event) {
+  event.preventDefault();
+  const wasInVoice = voiceChannel === VOICE_CHANNEL;
+  if (wasInVoice) leaveVoice();
+  selectedMicrophone = ui.microphoneSelect.value;
+  selectedSpeaker = ui.speakerSelect.value;
+  try { localStorage.setItem('safezone-microphone', selectedMicrophone); localStorage.setItem('safezone-speaker', selectedSpeaker); } catch {}
+  try {
+    await applySpeaker(selectedSpeaker);
+    ui.audioSettingsModal.hidden = true;
+    if (wasInVoice) await enterVoice();
+  } catch {
+    ui.audioSettingsHint.textContent = 'Não foi possível usar essa saída. Escolha a saída padrão e tente novamente.';
+    if (wasInVoice) await enterVoice();
+  }
+}
+
+async function checkForUpdates() {
+  await platformReady;
+  ui.checkUpdatesBtn.disabled = true;
+  ui.updateStatus.textContent = 'Consultando o GitHub…';
+  ui.updateModalText.textContent = 'Consultando a versão publicada no GitHub…';
+  ui.openReleaseBtn.hidden = true;
+  ui.updateModal.hidden = false;
+  try {
+    const result = await window.safezone.checkUpdates();
+    latestUpdateAvailable = result.available;
+    const installSteps = isWindows
+      ? 'Baixe o instalador Windows e execute-o para atualizar.'
+      : 'Baixe o pacote Linux, extraia-o e execute ./install.sh para atualizar.';
+    ui.updateModalText.textContent = result.available
+      ? `A versão ${result.latest} está disponível. Sua versão é ${result.current}. Abra a página oficial. ${installSteps} Feche o SafeZone antes de atualizar.`
+      : `Você está usando a versão mais recente (${result.current}).`;
+    ui.updateStatus.textContent = result.available ? `Versão ${result.latest} disponível` : `Atualizado · ${result.current}`;
+    ui.checkUpdatesBtn.textContent = result.available ? 'Baixar atualização' : 'Verificar atualizações no GitHub';
+    ui.openReleaseBtn.hidden = !result.available;
+  } catch {
+    latestUpdateAvailable = false;
+    ui.updateModalText.textContent = 'Não consegui consultar o GitHub agora. Confira sua conexão ou abra a página de versões depois.';
+    ui.updateStatus.textContent = 'Não foi possível verificar agora';
+    ui.checkUpdatesBtn.textContent = 'Verificar atualizações no GitHub';
+    ui.openReleaseBtn.hidden = false;
+  } finally { ui.checkUpdatesBtn.disabled = false; }
+}
+
+ui.audioSettingsBtn.onclick = openAudioSettings;
+ui.audioSettingsRoomBtn.onclick = openAudioSettings;
+ui.loadAudioDevices.onclick = () => refreshAudioDevices(true);
+ui.cancelAudioSettings.onclick = () => { ui.audioSettingsModal.hidden = true; };
+ui.audioSettingsForm.onsubmit = saveAudioSettings;
+ui.checkUpdatesBtn.onclick = () => latestUpdateAvailable
+  ? window.safezone.openReleasePage().catch(() => toast('Não consegui abrir o GitHub.'))
+  : checkForUpdates();
+ui.closeUpdateModal.onclick = () => { ui.updateModal.hidden = true; };
+ui.openReleaseBtn.onclick = () => window.safezone.openReleasePage().catch(() => toast('Não consegui abrir o GitHub.'));
 function showHomeError(text) { ui.homeError.textContent = text; ui.homeError.hidden = !text; }
 function setHomeBusy(busy) { ui.createBtn.disabled = busy; ui.joinBtn.disabled = busy; }
 
@@ -453,12 +553,16 @@ function renderVoiceChannel() {
 async function enterVoice() {
   if (voiceChannel === VOICE_CHANNEL) { leaveVoice(); return; }
   try {
-    voiceStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
+    const audio = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
+    if (selectedMicrophone) audio.deviceId = { exact: selectedMicrophone };
+    voiceStream = await navigator.mediaDevices.getUserMedia({ audio, video: false });
     voiceChannel = VOICE_CHANNEL;
     micMuted = false;
     sendToOwner({ t: 'voice-join', channel: VOICE_CHANNEL });
   } catch (err) {
-    toast(err && err.name === 'NotAllowedError' ? 'Permita o acesso ao microfone para entrar no canal de voz.' : 'Não consegui acessar o microfone.');
+    if (err && err.name === 'NotAllowedError') toast('Permita o acesso ao microfone para entrar no canal de voz.');
+    else if (err && err.name === 'OverconstrainedError') toast('O microfone escolhido não está disponível. Abra Configurar áudio e selecione outro.');
+    else toast('Não consegui acessar o microfone. Confira as permissões e o dispositivo de áudio.');
   }
   renderVoiceChannel();
 }
@@ -495,6 +599,7 @@ function attachVoiceCall(id, call) {
     if (voiceCalls.get(id) !== call) return;
     let audio = voiceAudio.get(id);
     if (!audio) { audio = document.createElement('audio'); audio.autoplay = true; audio.dataset.peer = id; document.body.append(audio); voiceAudio.set(id, audio); }
+    if (selectedSpeaker && typeof audio.setSinkId === 'function') audio.setSinkId(selectedSpeaker).catch(() => toast('Não consegui usar a saída de áudio escolhida.'));
     audio.srcObject = stream;
     audio.play().catch(() => toast('Clique na janela para liberar o áudio do canal de voz.'));
   });

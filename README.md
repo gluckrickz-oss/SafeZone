@@ -1,4 +1,4 @@
-# SafeZone 1.2.0 (Linux e Windows)
+# SafeZone 1.3.0 (Linux e Windows)
 
 Assista e converse com os amigos: crie uma sala, compartilhe o código e use os canais de texto e voz. No Linux, você escolhe o programa cujo áudio será enviado; no Windows, pode enviar o áudio do sistema inteiro ou nenhum áudio.
 
@@ -6,10 +6,12 @@ O SafeZone é multiplataforma, com superfície de ataque reduzida e foco em ter 
 
 ## Downloads
 
-- [Baixar para Linux x64 (.tar.gz)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.2.0-linux-x64.tar.gz)
-- [SHA-256 do pacote Linux](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.2.0-linux-x64.tar.gz.sha256)
-- [Baixar para Windows 10/11 x64 (ZIP)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.2.0-windows-x64.zip)
-- [SHA-256 do pacote Windows](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.2.0-windows-x64.zip.sha256)
+- [Baixar para Linux x64 (.tar.gz)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.0-linux-x64.tar.gz)
+- [SHA-256 do pacote Linux](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.0-linux-x64.tar.gz.sha256)
+- [Instalador Windows 10/11 x64 (.exe)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.0-windows-x64-setup.exe)
+- [SHA-256 do instalador Windows](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.0-windows-x64-setup.exe.sha256)
+- [Versão portátil para Windows (.zip)](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.0-windows-x64.zip)
+- [SHA-256 do pacote portátil](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.0-windows-x64.zip.sha256)
 - [Todas as versões e notas de lançamento](https://github.com/gluckrickz-oss/SafeZone/releases)
 
 ## Requisitos Linux
@@ -20,11 +22,11 @@ O SafeZone é multiplataforma, com superfície de ataque reduzida e foco em ter 
 
 ## Instalar (pacote pronto)
 
-Baixe o [pacote Linux x64](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.2.0-linux-x64.tar.gz) e o [checksum SHA-256](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.2.0-linux-x64.tar.gz.sha256):
+Baixe o [pacote Linux x64](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.0-linux-x64.tar.gz) e o [checksum SHA-256](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.0-linux-x64.tar.gz.sha256):
 
 ```bash
-tar xzf safezone-1.2.0-linux-x64.tar.gz
-cd safezone-1.2.0-linux-x64
+tar xzf safezone-1.3.0-linux-x64.tar.gz
+cd safezone-1.3.0-linux-x64
 ./install.sh
 safezone
 ```
@@ -33,7 +35,7 @@ O `install.sh` instala só para o seu usuário em `~/.local`. Ele só pede `sudo
 
 ## Instalar no Windows
 
-Baixe [SafeZone 1.2.0 para Windows x64](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.2.0-windows-x64.zip), extraia o ZIP e abra `SafeZone.exe`. O pacote é portátil, não precisa de instalador nem de privilégios de administrador. A versão não é assinada e o Windows pode exibir o aviso do SmartScreen; confira o [SHA-256](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.2.0-windows-x64.zip.sha256) antes de abrir.
+Baixe o [instalador SafeZone 1.3.0](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.0-windows-x64-setup.exe), confira o [SHA-256](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.0-windows-x64-setup.exe.sha256) e execute. Ele instala só para seu usuário, sem pedir administrador. A versão não é assinada e o Windows pode exibir o aviso do SmartScreen. Se preferir, use o [ZIP portátil](https://github.com/gluckrickz-oss/SafeZone/releases/latest/download/safezone-1.3.0-windows-x64.zip).
 
 ## Rodar a partir do código
 
@@ -52,8 +54,10 @@ npm run audit     # npm audit
 
 1. Escolha seu apelido antes de criar uma sala ou entrar com um código de convite.
 2. Use `#geral` e `#filmes` para conversar por texto. As mensagens ficam na memória do computador que criou a sala.
-3. Entre em `voz-geral` e permita o microfone; o botão 🎙 silencia e ativa sua voz.
+3. Em **Configurar áudio**, escolha o microfone e a saída de áudio. O driver compatível é detectado pelo sistema. Entre em `voz-geral` e use o botão 🎙 para silenciar e ativar sua voz.
 4. Para assistir, clique em **Compartilhar tela**, escolha a janela e o áudio. Para ver a transmissão, selecione quem está transmitindo.
+
+Use **Verificar atualizações no GitHub** na tela inicial. Se houver uma versão nova, abra a release oficial. No Windows, baixe e execute o instalador. No Linux, extraia o pacote e execute `./install.sh`. Feche o SafeZone antes de atualizar.
 
 A lista de programas com som mostra só quem está tocando áudio **agora** no Linux: dê play no player antes de abrir "Compartilhar tela".
 
@@ -88,10 +92,10 @@ No Linux, rode `chmod 600 ~/.config/SafeZone/turn.json`. No Windows, mantenha a 
 
 ## Privacidade
 
-O SafeZone não tem telemetria. O apelido e a qualidade preferida ficam no armazenamento local do perfil Electron; o apelido é compartilhado com a sala enquanto você está conectado. Mensagens de texto passam pelo computador que criou a sala e ficam em memória até ela fechar. Voz, vídeo e áudio usam WebRTC com criptografia em trânsito; a voz é enviada às pessoas no canal de voz. Se TURN estiver configurado, a mídia pode passar pelo relay. O PeerJS (`0.peerjs.com`) é usado para sinalização; STUN públicos podem observar endereços IP. O código da sala é a única barreira de entrada: quem souber o código pode tentar entrar. Veja [SECURITY.md](SECURITY.md) para o modelo de ameaça e instruções para apagar as configurações locais.
+O SafeZone não tem telemetria. O apelido, microfone, saída de áudio e qualidade preferida ficam no armazenamento local do perfil Electron; o apelido é compartilhado com a sala enquanto você está conectado. Mensagens de texto passam pelo computador que criou a sala e ficam em memória até ela fechar. Voz, vídeo e áudio usam WebRTC com criptografia em trânsito; a voz é enviada às pessoas no canal de voz. Se TURN estiver configurado, a mídia pode passar pelo relay. O PeerJS (`0.peerjs.com`) é usado para sinalização; STUN públicos podem observar endereços IP. O código da sala é a única barreira de entrada: quem souber o código pode tentar entrar. Veja [SECURITY.md](SECURITY.md) para o modelo de ameaça e instruções para apagar as configurações locais.
 
 ## Limitações conhecidas
 
 - A criptografia é a do WebRTC (DTLS-SRTP), mas **não há autenticação de usuários**: quem tem o código entra. Troque o código criando outra sala.
 - Os pacotes ainda não são assinados. Confira o `.sha256`; ele detecta alteração acidental, mas não comprova sozinho quem publicou o arquivo.
-- Sem atualização automática: atualize o Electron e o PeerJS (veja `SECURITY.md`).
+- O app verifica releases no GitHub, mas a atualização é manual: baixe e execute o instalador (Windows) ou o `install.sh` (Linux). Atualizações do Electron e do PeerJS também são manuais.

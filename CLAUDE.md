@@ -26,7 +26,7 @@ npm run sbom            # gera build/sbom.cdx.json
 
 ## Regras que NÃO podem ser quebradas
 
-1. **Dependências:** só `electron` e `peerjs`, ambos em `devDependencies`, com versão EXATA (sem `^` ou `~`). Não adicionar `electron-builder` nem outras bibliotecas sem necessidade real: foi ele que trouxe o CVE do `minimatch`. Antes de adicionar qualquer pacote, justifique e rode `npm run audit`.
+1. **Dependências:** só `electron` e `peerjs`, ambos em `devDependencies`, com versão EXATA (sem `^` ou `~`). Não adicionar `electron-builder` nem outras bibliotecas sem necessidade real: foi ele que trouxe o CVE do `minimatch`. O instalador Windows usa Inno Setup no CI. Antes de adicionar qualquer pacote, justifique e rode `npm run audit`.
 2. **Sandbox do Electron sempre ligado:** manter `sandbox: true`, `contextIsolation: true`, `nodeIntegration: false`, `webSecurity: true` e `app.enableSandbox()`. Nunca usar `--no-sandbox` em produção.
 3. **CSP em `src/index.html`:** não afrouxar. Sem `unsafe-inline`, sem `unsafe-eval`, sem scripts/estilos inline, sem hosts novos. A única rede permitida é `0.peerjs.com` (veja também o filtro `webRequest` em `main.js`).
 4. **IPC:** todo `ipcMain.handle` passa por `handle()` (confere que o remetente é a página do app) e valida cada argumento com regex/tipo. Novo canal = nova validação + novo método no `preload.js`.
@@ -35,6 +35,7 @@ npm run sbom            # gera build/sbom.cdx.json
 7. **Rede da sala é não confiável:** toda mensagem recebida passa por `isMsg`, validação de tipo/tamanho e `rateGuard`. Só o dono da sala valida e retransmite. Texto fica em memória no dono da sala; voz conecta apenas participantes do canal. Manter o limite `MAX_MEMBERS` e o código de sala de 8 caracteres.
 8. **Sem telemetria**, sem recursos remotos (fontes, imagens, scripts de CDN). Tudo local.
 9. **Nada de `innerHTML` com dados externos:** usar `textContent`/`createElement`.
+10. **Atualizações:** o processo principal consulta somente `api.github.com/repos/gluckrickz-oss/SafeZone/releases/latest`; o renderer não recebe uma ponte de rede genérica. A instalação da release é iniciada pelo usuário.
 
 ## Convenções
 

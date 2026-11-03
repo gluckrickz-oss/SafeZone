@@ -7,6 +7,8 @@ on:
       - package.json
       - package-lock.json
       - scripts/package-windows.js
+      - scripts/safezone.iss
+      - .github/workflows/release-windows.yml
       - main.js
       - preload.js
       - src/**
@@ -53,6 +55,17 @@ jobs:
           Compress-Archive -Path "$folder/*" -DestinationPath $zip -CompressionLevel Optimal -Force
           $hash = (Get-FileHash -Path $zip -Algorithm SHA256).Hash.ToLowerInvariant()
           "$hash  $name.zip" | Set-Content -Path "$zip.sha256" -Encoding ascii
+      - name: Build per-user installer
+        shell: pwsh
+        run: |
+          choco install innosetup --yes --no-progress
+          $version = node -p "require('./package.json').version"
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          & $iscc "/DAppVersion=$version" "scripts/safezone.iss"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $installer = "build/safezone-$version-windows-x64-setup.exe"
+          $hash = (Get-FileHash -Path $installer -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $(Split-Path -Leaf $installer)" | Set-Content -Path ($installer + ".sha256") -Encoding ascii
       - name: Publish GitHub release
         shell: pwsh
         env:
@@ -60,5 +73,6 @@ jobs:
         run: |
           $version = node -p "require('./package.json').version"
           $name = "safezone-$version-windows-x64"
+          $installer = "build/safezone-$version-windows-x64-setup.exe"
           $tag = "v$version"
-          gh release create $tag "build/$name.zip" "build/$name.zip.sha256" --target $env:GITHUB_SHA --title "SafeZone $version para Windows" --notes-file CHANGELOG.md --repo $env:GITHUB_REPOSITORY
+          gh release create $tag "build/$name.zip" "build/$name.zip.sha256" $installer ($installer + ".sha256") --target $env:GITHUB_SHA --title "SafeZone $version para Windows" --notes-file CHANGELOG.md --repo $env:GITHUB_REPOSITORY

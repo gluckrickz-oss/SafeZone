@@ -1,7 +1,8 @@
 'use strict';
 // SafeZone (Linux/Windows): salas para assistir filme e série juntos.
-const { app, BrowserWindow, ipcMain, desktopCapturer, session, nativeTheme, clipboard } = require('electron');
+const { app, BrowserWindow, ipcMain, desktopCapturer, session, nativeTheme, clipboard, shell } = require('electron');
 const { spawn, execFile } = require('node:child_process');
+const https = require('node:https');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
@@ -31,6 +32,7 @@ app.commandLine.appendSwitch('disable-background-timer-throttling');
 app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
 
 const APP_URL = pathToFileURL(path.join(__dirname, 'src', 'index.html')).toString();
+const RELEASE_PAGE = 'https://github.com/gluckrickz-oss/SafeZone/releases/latest';
 const isAppUrl = (u) => typeof u === 'string' && (u === APP_URL || u.startsWith(APP_URL + '#'));
 const ALLOWED_PERMISSIONS = new Set(['fullscreen', 'display-capture']);
 
@@ -109,6 +111,42 @@ function handle(channel, fn) {
 
 handle('platform', () => ({ wayland: isWayland, windows: process.platform === 'win32' }));
 
+function latestRelease() {
+  return new Promise((resolve, reject) => {
+    const req = https.get('https://api.github.com/repos/gluckrickz-oss/SafeZone/releases/latest', {
+      headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'SafeZone-Updater' },
+    }, (res) => {
+      if (res.statusCode !== 200) { res.resume(); return reject(new Error('GitHub respondeu HTTP ' + res.statusCode)); }
+      let body = '';
+      res.setEncoding('utf8');
+      res.on('data', (chunk) => {
+        body += chunk;
+        if (body.length > 1_000_000) req.destroy(new Error('Resposta do GitHub grande demais.'));
+      });
+      res.on('end', () => {
+        try {
+          const data = JSON.parse(body);
+          if (typeof data.tag_name !== 'string' || !/^v?\d+\.\d+\.\d+$/.test(data.tag_name)) throw new Error('Versão da release inválida.');
+          resolve(data.tag_name.replace(/^v/, ''));
+        } catch (err) { reject(err); }
+      });
+    });
+    req.setTimeout(8000, () => req.destroy(new Error('Tempo esgotado ao consultar o GitHub.')));
+    req.on('error', reject);
+  });
+}
+
+handle('check-updates', async () => {
+  const current = app.getVersion();
+  const latest = await latestRelease();
+  const numeric = (v) => v.split('.').map(Number);
+  const a = numeric(current), b = numeric(latest);
+  let available = false;
+  for (let i = 0; i < 3; i++) { if (b[i] !== a[i]) { available = b[i] > a[i]; break; } }
+  return { current, latest, available };
+});
+handle('open-release-page', async () => { await shell.openExternal(RELEASE_PAGE); return true; });
+
 handle('get-sources', async () => {
   if (isWayland) return [];
   const sources = await desktopCapturer.getSources({ types: ['screen', 'window'], thumbnailSize: { width: 320, height: 180 }, fetchWindowIcons: false });
@@ -129,6 +167,16 @@ const pactl = (args) => new Promise((resolve, reject) => {
 handle('list-apps', async () => {
   if (process.platform !== 'linux') return [];
   try { return pulse.listApps(await pactl(['list', 'sink-inputs']), pulse.makeIsOwn(process.pid)); } catch { return []; }
+});
+
+handle('audio-driver', async () => {
+  if (process.platform === 'win32') return 'Áudio do Windows (microfone e saída padrão do sistema)';
+  try {
+    const info = await pactl(['info']);
+    if (/pipewire/i.test(info)) return 'PipeWire (compatibilidade PulseAudio)';
+    if (/pulseaudio/i.test(info)) return 'PulseAudio';
+  } catch {}
+  return 'Driver de áudio padrão do Linux';
 });
 
 handle('start-audio', async (event, id) => {
