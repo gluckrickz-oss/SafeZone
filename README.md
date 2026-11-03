@@ -76,6 +76,7 @@ No Windows, a captura de áudio oferece o som do sistema inteiro (todas as aplic
 ## Segurança
 
 - O app usa sandbox, CSP restrita e validação das mensagens recebidas.
+- A janela bloqueia seleção/cópia de texto e impressão. No Windows, usa a proteção do sistema contra captura da janela; no Linux, cobre a tela quando o SafeZone perde o foco, como proteção de melhor esforço.
 - O convite da sala tem 13 caracteres aleatórios; as salas aceitam até 12 pessoas. Salas e convites de versões anteriores com 8 caracteres não são compatíveis; todos precisam atualizar para a mesma versão.
 - O token TURN nunca é incluído no repositório nem no pacote.
 - A janela só acessa o servidor de sinalização PeerJS e recursos locais do app.
@@ -92,7 +93,9 @@ No Linux, rode `chmod 600 ~/.config/SafeZone/turn.json`. No Windows, mantenha a 
 
 ## Privacidade
 
-O SafeZone não tem telemetria. O apelido, microfone, saída de áudio e qualidade preferida ficam no armazenamento local do perfil Electron; o apelido é compartilhado com a sala enquanto você está conectado. Mensagens de texto são retransmitidas ao vivo pelo computador que criou a sala, sem arquivo ou histórico enviado a quem entrar depois. O texto continua visível temporariamente na tela dos participantes ativos e não é criptografado de ponta a ponta: quem está na sala pode ler, copiar ou registrar as mensagens. Voz, vídeo e áudio usam WebRTC com criptografia em trânsito; a voz é enviada às pessoas no canal de voz. Se TURN estiver configurado, a mídia pode passar pelo relay. O PeerJS (`0.peerjs.com`) é usado para sinalização; STUN públicos podem observar endereços IP. O código da sala é a única barreira de entrada: quem souber o código pode tentar entrar. Veja [SECURITY.md](SECURITY.md) para o modelo de ameaça e instruções para apagar as configurações locais.
+O SafeZone não tem telemetria. O apelido, microfone, saída de áudio e qualidade preferida ficam no armazenamento local do perfil Electron; o apelido é compartilhado com a sala enquanto você está conectado. Mensagens de texto são retransmitidas ao vivo pelo computador que criou a sala, sem arquivo ou histórico enviado a quem entrar depois. O texto continua visível temporariamente na tela dos participantes ativos e não é criptografado de ponta a ponta: quem está na sala pode ler e registrar as mensagens por outros meios. Voz, vídeo e áudio usam WebRTC com criptografia em trânsito; a voz é enviada às pessoas no canal de voz. Se TURN estiver configurado, a mídia pode passar pelo relay. O PeerJS (`0.peerjs.com`) é usado para sinalização; STUN públicos podem observar endereços IP. O código da sala é a única barreira de entrada: quem souber o código pode tentar entrar. Veja [SECURITY.md](SECURITY.md) para o modelo de ameaça e instruções para apagar as configurações locais.
+
+O bloqueio de captura é uma barreira de privacidade, não uma garantia: no Linux, ferramentas que capturam a tela sem tirar o foco ainda podem registrar a janela; câmera externa e software privilegiado também podem gravar o conteúdo.
 
 Nas configurações de áudio, escolha microfone aberto ou push to talk, personalize a tecla de fala e ajuste cancelamento de eco, redução de ruído e ganho automático. Push to talk transmite apenas enquanto a tecla escolhida (V por padrão) ou o botão de microfone estiver pressionado. As preferências ficam neste computador.
 
