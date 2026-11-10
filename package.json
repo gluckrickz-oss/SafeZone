@@ -17,7 +17,7 @@
     "package:windows": "node scripts/package-windows.js"
   },
   "devDependencies": {
-    "electron": "45.2.1",
+    "electron": "45.2.3",
     "peerjs": "1.5.5"
   }
 }
